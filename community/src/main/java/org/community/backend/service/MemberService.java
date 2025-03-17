@@ -26,44 +26,50 @@ public class MemberService {
 
     @Transactional
     public ResponseEntity<? super SignUpResponseDto> registerMember(SignUpRequestDto request) {
-        // 이메일 중복 체크
-        if (jdbcMemberRepository.findByEmail(request.getEmail()).isPresent()) {
-            return SignUpResponseDto.duplicateEmail();
+        try {
+            // 이메일 중복 체크
+            if (jdbcMemberRepository.findByEmail(request.getEmail()).isPresent()) {
+                return SignUpResponseDto.duplicateEmail();
+            }
+
+            // 사용자 등록
+            int memberId = jdbcMemberRepository.save(new Member(request.getEmail(), request.getPassword(), request.getNickname()));
+
+            // 프로필 이미지 등록 (이미지가 존재하는 경우)
+            if (request.getProfile_image() != null && !request.getProfile_image().isEmpty()) {
+                jdbcMemberRepository.saveProfileImage(memberId, request.getProfile_image());
+            }
+
+            return SignUpResponseDto.success();
+        } catch (Exception e) {
+            return SignUpResponseDto.databaseError();
         }
-
-        //System.out.println(request.getEmail());
-        //System.out.println(request.getProfile_image());
-        // 사용자 등록
-        int memberId = jdbcMemberRepository.save(new Member(request.getEmail(), request.getPassword(), request.getNickname()));
-
-        // 프로필 이미지 등록 (이미지가 존재하는 경우)
-        if (request.getProfile_image() != null && !request.getProfile_image().isEmpty()) {
-            jdbcMemberRepository.saveProfileImage(memberId, request.getProfile_image());
-        }
-
-        return SignUpResponseDto.success();
     }
 
     public ResponseEntity<? super SignInResponseDTO> signInMember(SignInRequestDTO request) {
-        Optional<Integer> optionalMemberId = jdbcMemberRepository.findIdByEmail(request.getEmail());
+        try {
+            Optional<Integer> optionalMemberId = jdbcMemberRepository.findIdByEmail(request.getEmail());
 
-        if (optionalMemberId.isEmpty()) {
-            return SignInResponseDTO.mismatchLoginInf();
-        }
-        int memberId = optionalMemberId.get();
+            if (optionalMemberId.isEmpty()) {
+                return SignInResponseDTO.mismatchLoginInf();
+            }
+            int memberId = optionalMemberId.get();
 
-        String memberPassword = jdbcMemberRepository.findPasswordById(memberId).orElse(null);
-        if (memberPassword == null) {
+            String memberPassword = jdbcMemberRepository.findPasswordById(memberId).orElse(null);
+            if (memberPassword == null) {
+                return SignInResponseDTO.databaseError();
+            }
+            if (!memberPassword.equals(request.getPassword())) {
+                return SignInResponseDTO.mismatchLoginInf();
+            }
+
+            return SignInResponseDTO.success(memberId);
+        } catch (Exception e) {
             return SignInResponseDTO.databaseError();
         }
-        if (!memberPassword.equals(request.getPassword())) {
-            return SignInResponseDTO.mismatchLoginInf();
-        }
-
-        return SignInResponseDTO.success(memberId);
     }
 
-    public ResponseEntity<? super MemberInfResponseDTO> getMemberInf (int memberId) {
+    public ResponseEntity<? super MemberInfResponseDTO> getMemberInf(int memberId) {
         try {
             Member member = jdbcMemberRepository.findUserById(memberId).orElse(null);
             if (member == null) {
@@ -72,9 +78,8 @@ public class MemberService {
             String nickname = member.getNickname();
             String profileImage = member.getImageUrl();
             return MemberInfResponseDTO.success(nickname, profileImage);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             return MemberInfResponseDTO.databaseError();
         }
-
     }
 }
