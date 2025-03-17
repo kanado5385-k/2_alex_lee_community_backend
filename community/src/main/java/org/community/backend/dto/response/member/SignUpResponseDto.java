@@ -15,7 +15,7 @@ public class SignUpResponseDto extends ApiResponse {
 
     public static ResponseEntity<SignUpResponseDto> success(){
         SignUpResponseDto result = new SignUpResponseDto();
-        return ResponseEntity.status(HttpStatus.OK).body(result);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     public static ResponseEntity<ApiResponse> duplicateEmail(){
