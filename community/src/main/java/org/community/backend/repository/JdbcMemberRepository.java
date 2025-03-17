@@ -20,14 +20,6 @@ public class JdbcMemberRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    //RowMapper는 쿼리 결과(ResultSet)를 Java 객체(Member)로 변환하는 인터페이스
-    //rowNum은 현재 처리 중인 행(Row)의 번호(여기서는 사용되지 않는다)
-    private final RowMapper<Member> memberRowMapper = (rs, rowNum) -> new Member(
-            rs.getString("email"),
-            rs.getString("password"),
-            rs.getString("nickname")
-    );
-
     // 쿼리 결과가 없을 수도 있기 때문 Optional<T>
     public Optional<Integer> findIdByEmail(String email) {
         String sql = "SELECT id FROM member WHERE email = ?";
@@ -57,5 +49,19 @@ public class JdbcMemberRepository {
     public void saveProfileImage(int memberId, String imageUrl) {
         String sql = "INSERT INTO member_profile_image (member_id, image_url) VALUES (?, ?)";
         jdbcTemplate.update(sql, memberId, imageUrl);
+    }
+
+    public Optional<Member> findByEmail(String email) {
+        String sql = "SELECT * FROM member WHERE email = ?";
+        return jdbcTemplate.query(sql, rs -> {
+            if (rs.next()) {
+                return Optional.of(new Member(
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getString("nickname")
+                ));
+            }
+            return Optional.empty(); // 반환된 값이 없으면 null 반환
+        }, email);
     }
 }
