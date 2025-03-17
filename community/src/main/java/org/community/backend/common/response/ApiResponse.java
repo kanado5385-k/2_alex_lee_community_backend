@@ -18,13 +18,6 @@ public class ApiResponse { // 모든 응답에 대한 코드와 메시지 관리
         this.message = ResponseMessage.SUCCESS;
     }
 
-    // 성공 응답 (201 Created)
-    public static ResponseEntity<ApiResponse> success() {
-        // ResponseEntity<T> -> HTTP 응답을 표현하는 클래스
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse(ResponseCode.SUCCESS, ResponseMessage.SUCCESS));
-    }
-
     // 데이터베이스 오류 (500 Internal Server Error)
     public static ResponseEntity<ApiResponse> databaseError() {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
