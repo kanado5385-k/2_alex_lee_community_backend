@@ -24,7 +24,7 @@ public class MemberService {
     }
 
     @Transactional
-    public ResponseEntity<? super SignUpResponseDto> registerUser(SignUpRequestDto request) {
+    public ResponseEntity<? super SignUpResponseDto> registerMember(SignUpRequestDto request) {
         // 이메일 중복 체크
         if (jdbcMemberRepository.findByEmail(request.getEmail()).isPresent()) {
             return SignUpResponseDto.duplicateEmail();

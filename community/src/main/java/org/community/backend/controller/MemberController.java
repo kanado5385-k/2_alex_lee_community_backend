@@ -24,8 +24,8 @@ public class MemberController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<? super SignUpResponseDto> registerUser(@Valid @RequestBody SignUpRequestDto request) {
-        return memberService.registerUser(request);
+    public ResponseEntity<? super SignUpResponseDto> registerMember(@Valid @RequestBody SignUpRequestDto request) {
+        return memberService.registerMember(request);
     }
 
     @PostMapping("/auth")
