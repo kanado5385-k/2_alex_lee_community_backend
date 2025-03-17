@@ -7,11 +7,10 @@ public class Member {
     private String nickname;
 
 
-    public Member(int id, String email, String password, String nickname) {
-        this.nickname = nickname;
-        this.password = password;
+    public Member(String email, String password, String nickname) {
         this.email = email;
-        this.id = id;
+        this.password = password;
+        this.nickname = nickname;
     }
 
     public String getNickname() {
