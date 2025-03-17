@@ -1,16 +1,21 @@
 package org.community.backend.member;
 
 public class Member {
-    private int id;
     private String email;
     private String password;
     private String nickname;
+    private String imageUrl;
 
 
     public Member(String email, String password, String nickname) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+    }
+
+    public Member(String nickname, String imageUrl) {
+        this.nickname = nickname;
+        this.imageUrl = imageUrl;
     }
 
     public String getNickname() {
@@ -25,8 +30,12 @@ public class Member {
         return email;
     }
 
-    public int getId() {
-        return id;
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public void setNickname(String nickname) {

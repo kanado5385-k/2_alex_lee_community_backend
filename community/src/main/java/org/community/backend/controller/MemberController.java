@@ -3,6 +3,7 @@ package org.community.backend.controller;
 import jakarta.validation.Valid;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.response.member.MemberInfResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.community.backend.service.MemberService;
@@ -31,5 +32,10 @@ public class MemberController {
     @PostMapping("/auth")
     public ResponseEntity<? super SignInResponseDTO> signInMember(@Valid @RequestBody SignInRequestDTO request) {
         return memberService.signInMember(request);
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<? super MemberInfResponseDTO> getMemberInf(@PathVariable int userId) {
+        return memberService.getMemberInf(userId);
     }
 }

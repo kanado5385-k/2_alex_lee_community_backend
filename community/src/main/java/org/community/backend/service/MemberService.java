@@ -3,6 +3,7 @@ package org.community.backend.service;
 import org.community.backend.common.response.ApiResponse;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.response.member.MemberInfResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.dto.response.member.SignUpResponseDto;
 import org.community.backend.repository.JdbcMemberRepository;
@@ -30,12 +31,14 @@ public class MemberService {
             return SignUpResponseDto.duplicateEmail();
         }
 
+        //System.out.println(request.getEmail());
+        //System.out.println(request.getProfile_image());
         // 사용자 등록
         int memberId = jdbcMemberRepository.save(new Member(request.getEmail(), request.getPassword(), request.getNickname()));
 
         // 프로필 이미지 등록 (이미지가 존재하는 경우)
-        if (request.getProfileImage() != null && !request.getProfileImage().isEmpty()) {
-            jdbcMemberRepository.saveProfileImage(memberId, request.getProfileImage());
+        if (request.getProfile_image() != null && !request.getProfile_image().isEmpty()) {
+            jdbcMemberRepository.saveProfileImage(memberId, request.getProfile_image());
         }
 
         return SignUpResponseDto.success();
@@ -58,5 +61,20 @@ public class MemberService {
         }
 
         return SignInResponseDTO.success(memberId);
+    }
+
+    public ResponseEntity<? super MemberInfResponseDTO> getMemberInf (int memberId) {
+        try {
+            Member member = jdbcMemberRepository.findUserById(memberId).orElse(null);
+            if (member == null) {
+                return MemberInfResponseDTO.databaseError();
+            }
+            String nickname = member.getNickname();
+            String profileImage = member.getImageUrl();
+            return MemberInfResponseDTO.success(nickname, profileImage);
+        }  catch (Exception e) {
+            return MemberInfResponseDTO.databaseError();
+        }
+
     }
 }

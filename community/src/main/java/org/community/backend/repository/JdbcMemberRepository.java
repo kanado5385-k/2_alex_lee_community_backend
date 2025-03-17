@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -39,6 +40,22 @@ public class JdbcMemberRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+
+    public Optional<Member> findUserById(int id) {
+        String sql = "SELECT m.nickname, p.image_url FROM member m " +
+                "LEFT JOIN member_profile_image p ON m.id = p.member_id " +
+                "WHERE m.id = ?";
+
+        List<Member> members = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            String nickname = rs.getString("nickname");
+            String imageUrl = rs.getString("image_url");
+
+            return new Member(nickname, imageUrl);
+        }, id);
+
+        return members.stream().findFirst(); // 첫 번째 값만 가져오기 (없으면 Optional.empty())
     }
 
     public int save(Member member) {
