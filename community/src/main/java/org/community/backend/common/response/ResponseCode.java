@@ -6,4 +6,5 @@ public class ResponseCode {
     public static final String INTERNAL_SERVER_ERROR = "ISE";
 
     public static final String DUPLICATE_EMAIL = "DUP";
+    public static final String SIGN_IN_FAIL = "SF";
 }

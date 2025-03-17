@@ -1,7 +1,9 @@
 package org.community.backend.service;
 
 import org.community.backend.common.response.ApiResponse;
+import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.dto.response.member.SignUpResponseDto;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.springframework.http.HttpStatus;
@@ -9,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.community.backend.member.Member;
+
+import java.util.Optional;
 
 @Service
 public class MemberService {
@@ -35,5 +39,24 @@ public class MemberService {
         }
 
         return SignUpResponseDto.success();
+    }
+
+    public ResponseEntity<? super SignInResponseDTO> signInMember(SignInRequestDTO request) {
+        Optional<Integer> optionalMemberId = jdbcMemberRepository.findIdByEmail(request.getEmail());
+
+        if (optionalMemberId.isEmpty()) {
+            return SignInResponseDTO.mismatchLoginInf();
+        }
+        int memberId = optionalMemberId.get();
+
+        String memberPassword = jdbcMemberRepository.findPasswordById(memberId).orElse(null);
+        if (memberPassword == null) {
+            return SignInResponseDTO.databaseError();
+        }
+        if (!memberPassword.equals(request.getPassword())) {
+            return SignInResponseDTO.mismatchLoginInf();
+        }
+
+        return SignInResponseDTO.success(memberId);
     }
 }

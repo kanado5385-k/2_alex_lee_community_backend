@@ -31,6 +31,16 @@ public class JdbcMemberRepository {
         }
     }
 
+    public Optional<String> findPasswordById(int id) {
+        String sql = "SELECT password FROM member WHERE id = ?";
+        try {
+            String password = jdbcTemplate.queryForObject(sql, String.class, id);
+            return Optional.ofNullable(password);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
     public int save(Member member) {
         String sql = "INSERT INTO member (email, password, nickname) VALUES (?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder(); // 자동 생성된 기본 키(id)를 저장할 객체
