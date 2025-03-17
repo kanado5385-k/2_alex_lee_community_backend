@@ -17,5 +17,5 @@ public class SignUpRequestDto {
     @NotBlank
     private String nickname;
 
-    private String profileImage;
+    private String profile_image;
 }
