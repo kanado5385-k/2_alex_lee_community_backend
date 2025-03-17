@@ -16,8 +16,8 @@ public class SignInResponseDTO extends ApiResponse {
         this.memberId = memberId;
     }
 
-    public static ResponseEntity<SignInResponseDTO> success(int memeberId) {
-        SignInResponseDTO result = new SignInResponseDTO(memeberId);
+    public static ResponseEntity<SignInResponseDTO> success(int memberId) {
+        SignInResponseDTO result = new SignInResponseDTO(memberId);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
