@@ -1,8 +1,10 @@
 package org.community.backend.service;
 
 import org.community.backend.common.response.ApiResponse;
+import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.response.member.MemberInfChangeResponseDTO;
 import org.community.backend.dto.response.member.MemberInfResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.dto.response.member.SignUpResponseDto;
@@ -80,6 +82,16 @@ public class MemberService {
             return MemberInfResponseDTO.success(nickname, profileImage);
         } catch (Exception e) {
             return MemberInfResponseDTO.databaseError();
+        }
+    }
+
+    public ResponseEntity<? super MemberInfChangeResponseDTO> changeMemberInf(MemberInfChangeRequestDTO request) {
+        try {
+            jdbcMemberRepository.updateMemberInfo(request.getUser_id(), request.getNickname(), request.getProfile_image());
+            return MemberInfChangeResponseDTO.success();
+        }
+        catch (Exception e) {
+            return MemberInfChangeResponseDTO.databaseError();
         }
     }
 }

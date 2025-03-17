@@ -1,8 +1,10 @@
 package org.community.backend.controller;
 
 import jakarta.validation.Valid;
+import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.response.member.MemberInfChangeResponseDTO;
 import org.community.backend.dto.response.member.MemberInfResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
@@ -37,5 +39,10 @@ public class MemberController {
     @GetMapping("/users/{userId}")
     public ResponseEntity<? super MemberInfResponseDTO> getMemberInf(@PathVariable int userId) {
         return memberService.getMemberInf(userId);
+    }
+
+    @PatchMapping("/users")
+    public ResponseEntity<? super MemberInfChangeResponseDTO>  updateMemberInf(@Valid @RequestBody MemberInfChangeRequestDTO request) {
+        return memberService.changeMemberInf(request);
     }
 }

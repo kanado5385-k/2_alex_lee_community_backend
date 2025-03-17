@@ -1,5 +1,6 @@
 package org.community.backend.repository;
 
+import jakarta.transaction.Transactional;
 import org.community.backend.member.Member;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -90,5 +91,22 @@ public class JdbcMemberRepository {
             }
             return Optional.empty(); // 반환된 값이 없으면 null 반환
         }, email);
+    }
+
+    @Transactional
+    public void updateMemberInfo(int memberId, String newNickname, String newImageUrl) {
+        // 닉네임 업데이트
+        String updateNicknameSql = "UPDATE member SET nickname = ? WHERE id = ?";
+        int nicknameUpdated = jdbcTemplate.update(updateNicknameSql, newNickname, memberId);
+
+        // 프로필 이미지 업데이트 (member_profile_image 테이블)
+        String updateImageSql = "UPDATE member_profile_image SET image_url = ? WHERE member_id = ?";
+        int imageUpdated = jdbcTemplate.update(updateImageSql, newImageUrl, memberId);
+
+        // 프로필 이미지가 없는 경우 새로 삽입
+        if (imageUpdated == 0) {
+            String insertImageSql = "INSERT INTO member_profile_image (member_id, image_url) VALUES (?, ?)";
+            jdbcTemplate.update(insertImageSql, memberId, newImageUrl);
+        }
     }
 }
