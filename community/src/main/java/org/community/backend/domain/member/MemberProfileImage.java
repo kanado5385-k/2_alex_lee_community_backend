@@ -1,4 +1,4 @@
-package org.community.backend.member;
+package org.community.backend.domain.member;
 
 public class MemberProfileImage {
     private Integer id;

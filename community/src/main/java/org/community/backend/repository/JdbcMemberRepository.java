@@ -1,10 +1,9 @@
 package org.community.backend.repository;
 
 import jakarta.transaction.Transactional;
-import org.community.backend.member.Member;
+import org.community.backend.domain.member.Member;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -114,5 +113,11 @@ public class JdbcMemberRepository {
         // 비밀번호 업데이트
         String updatePasswordSql = "UPDATE member SET password = ? WHERE id = ?";
         jdbcTemplate.update(updatePasswordSql, password, memberId);
+    }
+
+    public void deleteMember(int memberId) {
+        // 회원 삭제
+        String deleteMemberSql = "DELETE FROM member WHERE id = ?";
+        jdbcTemplate.update(deleteMemberSql, memberId);
     }
 }

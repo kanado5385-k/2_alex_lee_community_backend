@@ -1,17 +1,15 @@
 package org.community.backend.service;
 
-import org.community.backend.common.response.ApiResponse;
 import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
 import org.community.backend.dto.response.member.*;
 import org.community.backend.repository.JdbcMemberRepository;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-import org.community.backend.member.Member;
+import org.community.backend.domain.member.Member;
 
 import java.util.Optional;
 
@@ -100,6 +98,15 @@ public class MemberService {
         }
         catch (Exception e) {
             return MemberPasswordChangeResponseDTO.databaseError();
+        }
+    }
+
+    public ResponseEntity<? super MemberDeleteResponseDTO>  deleteMember(int memberId) {
+        try {
+            jdbcMemberRepository.deleteMember(memberId);
+            return MemberDeleteResponseDTO.success();
+        } catch (Exception e) {
+            return MemberDeleteResponseDTO.databaseError();
         }
     }
 }

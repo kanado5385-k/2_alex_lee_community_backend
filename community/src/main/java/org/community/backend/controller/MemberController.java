@@ -48,4 +48,9 @@ public class MemberController {
     public ResponseEntity<? super MemberPasswordChangeResponseDTO>  updateMemberPassword(@Valid @RequestBody MemberPasswordChangeRequestDTO request) {
         return memberService.changeMemberPassword(request);
     }
+
+    @DeleteMapping("users/{userId}")
+    public ResponseEntity<? super MemberDeleteResponseDTO>  deleteMember(@PathVariable int userId) {
+        return memberService.deleteMember(userId);
+    }
 }
