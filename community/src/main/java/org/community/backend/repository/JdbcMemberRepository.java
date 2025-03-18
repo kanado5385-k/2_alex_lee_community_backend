@@ -109,4 +109,10 @@ public class JdbcMemberRepository {
             jdbcTemplate.update(insertImageSql, memberId, newImageUrl);
         }
     }
+
+    public void updateMemberPassword(int memberId, String password) {
+        // 비밀번호 업데이트
+        String updatePasswordSql = "UPDATE member SET password = ? WHERE id = ?";
+        jdbcTemplate.update(updatePasswordSql, password, memberId);
+    }
 }

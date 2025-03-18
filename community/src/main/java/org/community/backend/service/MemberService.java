@@ -2,12 +2,10 @@ package org.community.backend.service;
 
 import org.community.backend.common.response.ApiResponse;
 import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
+import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
-import org.community.backend.dto.response.member.MemberInfChangeResponseDTO;
-import org.community.backend.dto.response.member.MemberInfResponseDTO;
-import org.community.backend.dto.response.member.SignInResponseDTO;
-import org.community.backend.dto.response.member.SignUpResponseDto;
+import org.community.backend.dto.response.member.*;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -92,6 +90,16 @@ public class MemberService {
         }
         catch (Exception e) {
             return MemberInfChangeResponseDTO.databaseError();
+        }
+    }
+
+    public ResponseEntity<? super MemberPasswordChangeResponseDTO> changeMemberPassword(MemberPasswordChangeRequestDTO request) {
+        try {
+            jdbcMemberRepository.updateMemberPassword(request.getUser_id(),  request.getPassword());
+            return MemberPasswordChangeResponseDTO.success();
+        }
+        catch (Exception e) {
+            return MemberPasswordChangeResponseDTO.databaseError();
         }
     }
 }
