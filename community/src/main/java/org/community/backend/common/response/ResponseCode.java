@@ -9,6 +9,7 @@ public class ResponseCode {
     public static final String DUPLICATE_EMAIL = "DUP";
     public static final String SIGN_IN_FAIL = "SF";
     public static final String NOT_EXISTED_POST = "NP";
+    public static final String PERMITTED_ERROR = "PE";
 
     // 500
     public static final String INTERNAL_SERVER_ERROR = "ISE";
