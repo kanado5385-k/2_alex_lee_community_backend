@@ -21,17 +21,17 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<? super PostCreateUpdateResponseDTO> registerMember(@Valid @RequestBody PostCreateUpdateRequestDTO request) {
+    public ResponseEntity<? super PostCreateUpdateResponseDTO> createPost(@Valid @RequestBody PostCreateUpdateRequestDTO request) {
         return postService.createPost(request);
     }
 
     @GetMapping("{postsId}")
-    public ResponseEntity<? super PostResponseDTO> registerPost(@PathVariable Long postsId) {
+    public ResponseEntity<? super PostResponseDTO> getPost(@PathVariable Long postsId) {
         return postService.getPostById(postsId);
     }
 
     @PostMapping("/{postsId}/comments")
-    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> registerComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
+    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> createComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
         return postService.createPostComment(request,postsId);
     }
 
