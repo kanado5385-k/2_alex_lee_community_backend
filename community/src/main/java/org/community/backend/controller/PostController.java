@@ -3,8 +3,8 @@ package org.community.backend.controller;
 import jakarta.validation.Valid;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
-import org.community.backend.dto.response.post.PostCommentCreateResponseDTO;
-import org.community.backend.dto.response.post.PostCreateResponseDTO;
+import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
+import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
 import org.community.backend.service.PostService;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<? super PostCreateResponseDTO> registerMember(@Valid @RequestBody PostCreateUpdateRequestDTO request) {
+    public ResponseEntity<? super PostCreateUpdateResponseDTO> registerMember(@Valid @RequestBody PostCreateUpdateRequestDTO request) {
         return postService.createPost(request);
     }
 
@@ -31,7 +31,7 @@ public class PostController {
     }
 
     @PostMapping("/{postsId}/comments")
-    public ResponseEntity<? super PostCommentCreateResponseDTO> registerComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
+    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> registerComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
         return postService.createPostComment(request,postsId);
     }
 }

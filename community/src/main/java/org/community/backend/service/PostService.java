@@ -6,8 +6,8 @@ import org.community.backend.domain.post.PostComment;
 import org.community.backend.domain.post.PostImage;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
-import org.community.backend.dto.response.post.PostCommentCreateResponseDTO;
-import org.community.backend.dto.response.post.PostCreateResponseDTO;
+import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
+import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.community.backend.repository.JpaPostCommentRepository;
@@ -33,7 +33,7 @@ public class PostService {
     }
 
     @Transactional
-    public ResponseEntity<? super PostCreateResponseDTO> createPost(PostCreateUpdateRequestDTO postCreateRequestDTO) {
+    public ResponseEntity<? super PostCreateUpdateResponseDTO> createPost(PostCreateUpdateRequestDTO postCreateRequestDTO) {
         try {
             Post newPost = new Post(postCreateRequestDTO.getUser_id(), postCreateRequestDTO.getPost_title(), postCreateRequestDTO.getPost_content());
             jpaPostRepository.save(newPost);
@@ -43,9 +43,9 @@ public class PostService {
                 jpaPostImageRepository.save(postImage);
             }
 
-            return PostCreateResponseDTO.success();
+            return PostCreateUpdateResponseDTO.success();
         } catch (Exception e) {
-            return PostCreateResponseDTO.databaseError();
+            return PostCreateUpdateResponseDTO.databaseError();
         }
     }
 
@@ -67,19 +67,19 @@ public class PostService {
     }
 
     @Transactional
-    public ResponseEntity<? super PostCommentCreateResponseDTO> createPostComment(PostCommentCreateUpdateRequestDTO postCommentCreateRequestDTO, Long postId) {
+    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> createPostComment(PostCommentCreateUpdateRequestDTO postCommentCreateRequestDTO, Long postId) {
         try {
             Optional<Post> post = jpaPostRepository.findById(postId);
             if (post.isPresent()) {
                 Post postEntity = post.get();
                 PostComment postComment = new PostComment(postCommentCreateRequestDTO.getUser_id(), postEntity, postCommentCreateRequestDTO.getComment_content());
                 jpaPostCommentRepository.save(postComment);
-                return PostCommentCreateResponseDTO.success();
+                return PostCommentCreateUpdateResponseDTO.success();
             }
-            return PostCommentCreateResponseDTO.postNotFound();
+            return PostCommentCreateUpdateResponseDTO.postNotFound();
         }
         catch (Exception e) {
-            return PostCommentCreateResponseDTO.databaseError();
+            return PostCommentCreateUpdateResponseDTO.databaseError();
         }
     }
 }
