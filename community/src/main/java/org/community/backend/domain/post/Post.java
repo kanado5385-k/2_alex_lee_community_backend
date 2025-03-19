@@ -3,6 +3,7 @@ package org.community.backend.domain.post;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 
 import java.time.LocalDateTime;
 
@@ -52,5 +53,10 @@ public class Post {
 
     public void incrementCommentCount() {
         this.commentCount++;
+    }
+
+    public void updatePost(PostCreateUpdateRequestDTO postCreateUpdateRequestDTO) {
+        this.title = postCreateUpdateRequestDTO.getPost_title();
+        this.content = postCreateUpdateRequestDTO.getPost_content();
     }
 }

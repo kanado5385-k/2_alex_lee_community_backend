@@ -82,4 +82,36 @@ public class PostService {
             return PostCommentCreateUpdateResponseDTO.databaseError();
         }
     }
+
+    @Transactional
+    public ResponseEntity<? super PostCreateUpdateResponseDTO> updatePost(PostCreateUpdateRequestDTO postCreateUpdateRequestDTO, Long postId) {
+        try {
+            Optional<Post> post = jpaPostRepository.findById(postId);
+            if (post.isPresent()) {
+                Post postEntity = post.get();
+                Long memberId = postEntity.getMemberId();
+                if (!postCreateUpdateRequestDTO.getUser_id().equals(memberId)) {
+                    return PostCreateUpdateResponseDTO.notHavePermission();
+                }
+                postEntity.updatePost(postCreateUpdateRequestDTO);
+
+                if (postCreateUpdateRequestDTO.getPost_image() != null && !postCreateUpdateRequestDTO.getPost_image().isEmpty()) {
+                    Optional<PostImage> postImage = jpaPostImageRepository.findByPostId(postId);
+                    if (postImage.isPresent()) {
+                        PostImage postImageEntity = postImage.get();
+                        postImageEntity.updateImageUrl(postCreateUpdateRequestDTO.getPost_image());
+                        return PostCreateUpdateResponseDTO.success();
+                    }
+                    PostImage newPostImage = new PostImage(postEntity, postCreateUpdateRequestDTO.getPost_image());
+                    jpaPostImageRepository.save(newPostImage);
+                    return PostCreateUpdateResponseDTO.success();
+                }
+
+                return PostCreateUpdateResponseDTO.success();
+            }
+            return PostCreateUpdateResponseDTO.postNotFound();
+        } catch (Exception e) {
+            return PostCreateUpdateResponseDTO.databaseError();
+        }
+    }
 }

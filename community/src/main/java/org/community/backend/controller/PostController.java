@@ -34,5 +34,10 @@ public class PostController {
     public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> registerComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
         return postService.createPostComment(request,postsId);
     }
+
+    @PatchMapping("{postsId}")
+    public ResponseEntity<? super PostCreateUpdateResponseDTO> updatePost(@PathVariable Long postsId, @Valid @RequestBody PostCreateUpdateRequestDTO request) {
+        return postService.updatePost(request,postsId);
+    }
 }
 
