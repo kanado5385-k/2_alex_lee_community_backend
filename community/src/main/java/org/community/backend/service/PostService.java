@@ -2,11 +2,15 @@ package org.community.backend.service;
 
 import jakarta.transaction.Transactional;
 import org.community.backend.domain.post.Post;
+import org.community.backend.domain.post.PostComment;
 import org.community.backend.domain.post.PostImage;
+import org.community.backend.dto.request.post.PostCommentCreateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateRequestDTO;
+import org.community.backend.dto.response.post.PostCommentCreateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
+import org.community.backend.repository.JpaPostCommentRepository;
 import org.community.backend.repository.JpaPostImageRepository;
 import org.community.backend.repository.JpaPostRepository;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +23,13 @@ public class PostService {
     private final JpaPostRepository jpaPostRepository;
     private final JpaPostImageRepository jpaPostImageRepository;
     private final JdbcMemberRepository jdbcMemberRepository;
+    private final JpaPostCommentRepository jpaPostCommentRepository;
 
-    public PostService(JpaPostRepository jpaPostRepository, JpaPostImageRepository jpaPostImageRepository,  JdbcMemberRepository jdbcMemberRepository) {
+    public PostService(JpaPostRepository jpaPostRepository, JpaPostImageRepository jpaPostImageRepository,  JdbcMemberRepository jdbcMemberRepository,  JpaPostCommentRepository jpaPostCommentRepository) {
         this.jpaPostRepository = jpaPostRepository;
         this.jpaPostImageRepository = jpaPostImageRepository;
         this.jdbcMemberRepository = jdbcMemberRepository;
+        this.jpaPostCommentRepository = jpaPostCommentRepository;
     }
 
     @Transactional
@@ -57,6 +63,23 @@ public class PostService {
             return PostResponseDTO.postNotFound();
         } catch (Exception e) {
             return PostResponseDTO.databaseError();
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<? super PostCommentCreateResponseDTO> createPostComment(PostCommentCreateRequestDTO postCommentCreateRequestDTO,  Long postId) {
+        try {
+            Optional<Post> post = jpaPostRepository.findById(postId);
+            if (post.isPresent()) {
+                Post postEntity = post.get();
+                PostComment postComment = new PostComment(postCommentCreateRequestDTO.getUser_id(), postEntity, postCommentCreateRequestDTO.getComment_content());
+                jpaPostCommentRepository.save(postComment);
+                return PostCommentCreateResponseDTO.success();
+            }
+            return PostCommentCreateResponseDTO.postNotFound();
+        }
+        catch (Exception e) {
+            return PostCommentCreateResponseDTO.databaseError();
         }
     }
 }
