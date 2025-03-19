@@ -1,8 +1,8 @@
 package org.community.backend.controller;
 
 import jakarta.validation.Valid;
-import org.community.backend.dto.request.post.PostCommentCreateRequestDTO;
-import org.community.backend.dto.request.post.PostCreateRequestDTO;
+import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.response.post.PostCommentCreateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
@@ -21,7 +21,7 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<? super PostCreateResponseDTO> registerMember(@Valid @RequestBody PostCreateRequestDTO request) {
+    public ResponseEntity<? super PostCreateResponseDTO> registerMember(@Valid @RequestBody PostCreateUpdateRequestDTO request) {
         return postService.createPost(request);
     }
 
@@ -31,7 +31,7 @@ public class PostController {
     }
 
     @PostMapping("/{postsId}/comments")
-    public ResponseEntity<? super PostCommentCreateResponseDTO> registerComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateRequestDTO request) {
+    public ResponseEntity<? super PostCommentCreateResponseDTO> registerComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
         return postService.createPostComment(request,postsId);
     }
 }

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
-public class PostCreateRequestDTO {
+public class PostCreateUpdateRequestDTO {
 
     @NotNull
     private Long user_id;

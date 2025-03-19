@@ -4,8 +4,8 @@ import jakarta.transaction.Transactional;
 import org.community.backend.domain.post.Post;
 import org.community.backend.domain.post.PostComment;
 import org.community.backend.domain.post.PostImage;
-import org.community.backend.dto.request.post.PostCommentCreateRequestDTO;
-import org.community.backend.dto.request.post.PostCreateRequestDTO;
+import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.response.post.PostCommentCreateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
@@ -33,7 +33,7 @@ public class PostService {
     }
 
     @Transactional
-    public ResponseEntity<? super PostCreateResponseDTO> createPost(PostCreateRequestDTO postCreateRequestDTO) {
+    public ResponseEntity<? super PostCreateResponseDTO> createPost(PostCreateUpdateRequestDTO postCreateRequestDTO) {
         try {
             Post newPost = new Post(postCreateRequestDTO.getUser_id(), postCreateRequestDTO.getPost_title(), postCreateRequestDTO.getPost_content());
             jpaPostRepository.save(newPost);
@@ -67,7 +67,7 @@ public class PostService {
     }
 
     @Transactional
-    public ResponseEntity<? super PostCommentCreateResponseDTO> createPostComment(PostCommentCreateRequestDTO postCommentCreateRequestDTO,  Long postId) {
+    public ResponseEntity<? super PostCommentCreateResponseDTO> createPostComment(PostCommentCreateUpdateRequestDTO postCommentCreateRequestDTO, Long postId) {
         try {
             Optional<Post> post = jpaPostRepository.findById(postId);
             if (post.isPresent()) {
