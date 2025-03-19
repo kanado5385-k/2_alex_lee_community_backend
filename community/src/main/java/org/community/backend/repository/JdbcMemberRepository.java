@@ -120,4 +120,14 @@ public class JdbcMemberRepository {
         String deleteMemberSql = "DELETE FROM member WHERE id = ?";
         jdbcTemplate.update(deleteMemberSql, memberId);
     }
+
+    public Optional<String> findEmailById(long id) {
+        String sql = "SELECT email FROM member WHERE id = ?";
+        try {
+            String email = jdbcTemplate.queryForObject(sql, String.class, id);
+            return Optional.ofNullable(email);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package org.community.backend.domain.entity;
+package org.community.backend.domain.post;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor // JPA가 프록시 객체를 셍성하기 위해 반드시 필요 -> 기본생성자 자동으로 생성
 public class Post {
 
     @Id
