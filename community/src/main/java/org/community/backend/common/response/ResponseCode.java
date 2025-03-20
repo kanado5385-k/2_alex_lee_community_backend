@@ -12,6 +12,7 @@ public class ResponseCode {
     public static final String PERMITTED_ERROR = "PE";
     public static final String NOT_EXISTED_COMMENT = "NC";
     public static final String NO_ANY_POST = "NAP";
+    public static final String NO_ANY_COMMENT = "NAC";
 
     // 500
     public static final String INTERNAL_SERVER_ERROR = "ISE";

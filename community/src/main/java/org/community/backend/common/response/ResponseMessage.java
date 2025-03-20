@@ -12,6 +12,7 @@ public class ResponseMessage {
     public static final String PERMITTED_ERROR = "Permission error.";
     public static final String NOT_EXISTED_COMMENT = "This comment does not exist.";
     public static final String NO_ANY_POST = "No any Post found.";
+    public static final String NO_ANY_COMMENT = "No any Comment found.";
 
     // 500
     public static final String INTERNAL_SERVER_ERROR = "Internal Server Error.";

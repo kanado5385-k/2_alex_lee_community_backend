@@ -180,4 +180,27 @@ public class PostService {
         }
 
     }
+
+    @Transactional
+    public ResponseEntity<? super PostCommentListResponseDTO> getAllCommentsByPostId(Long postId) {
+        try {
+            Optional<Post> postOptional = jpaPostRepository.findById(postId);
+            if (postOptional.isEmpty()) {
+                return PostCommentListResponseDTO.postNotFound();
+            }
+
+            List<PostComment> comments = jpaPostCommentRepository.findByPostIdOrderByCreatedAtDesc(postId);
+            if (comments.isEmpty()) {
+                return PostCommentListResponseDTO.noAnyCommentFound();
+            }
+
+            List<String> writers = comments.stream()
+                    .map(comment -> jdbcMemberRepository.findEmailById(comment.getMemberId()).orElse("Unknown"))
+                    .collect(Collectors.toList());
+
+            return PostCommentListResponseDTO.success(comments, writers);
+        } catch (Exception e) {
+            return PostCommentListResponseDTO.databaseError();
+        }
+    }
 }

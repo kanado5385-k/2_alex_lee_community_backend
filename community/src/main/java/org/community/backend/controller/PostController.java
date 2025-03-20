@@ -53,5 +53,10 @@ public class PostController {
     public ResponseEntity<? super PostListResponseDTO> getAllPosts() {
         return postService.getAllPosts();
     }
+
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<? super PostCommentListResponseDTO> getCommentsByPostId(@PathVariable Long postId) {
+        return postService.getAllCommentsByPostId(postId);
+    }
 }
 
