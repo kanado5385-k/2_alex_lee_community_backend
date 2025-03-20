@@ -59,6 +59,7 @@ public class PostService {
                 Post postEntity = post.get();
                 Optional<String> writer = jdbcMemberRepository.findEmailById(postEntity.getMemberId());
                 if (writer.isPresent()) {
+                    postEntity.incrementViews();
                     return PostResponseDTO.success(postEntity, writer.get());
                 }
             }
@@ -76,6 +77,7 @@ public class PostService {
                 Post postEntity = post.get();
                 PostComment postComment = new PostComment(postCommentCreateRequestDTO.getUser_id(), postEntity, postCommentCreateRequestDTO.getComment_content());
                 jpaPostCommentRepository.save(postComment);
+                postEntity.incrementCommentCount();
                 return PostCommentCreateUpdateResponseDTO.success();
             }
             return PostCommentCreateUpdateResponseDTO.postNotFound();
