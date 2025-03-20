@@ -8,15 +8,14 @@ import org.community.backend.domain.entity.PostLike;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostLikeRequestDTO;
-import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
-import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
-import org.community.backend.dto.response.post.PostLikeResponseDTO;
-import org.community.backend.dto.response.post.PostResponseDTO;
+import org.community.backend.dto.response.post.*;
 import org.community.backend.repository.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -162,5 +161,23 @@ public class PostService {
         } catch (Exception e) {
             return PostLikeResponseDTO.databaseError();
         }
+    }
+
+    public ResponseEntity<? super PostListResponseDTO> getAllPosts() {
+        try {
+            List<Post> posts = jpaPostRepository.findAll();
+            if (posts.isEmpty()) {
+                return PostListResponseDTO.noAnyPostFound();
+            }
+
+            List<String> writers = posts.stream()
+                    .map(post -> jdbcMemberRepository.findEmailById(post.getMemberId()).orElse("Unknown"))
+                    .collect(Collectors.toList());
+
+            return PostListResponseDTO.success(posts, writers);
+        } catch (Exception e) {
+            return PostListResponseDTO.databaseError();
+        }
+
     }
 }
