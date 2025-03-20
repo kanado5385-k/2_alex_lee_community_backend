@@ -27,19 +27,19 @@ public class PostController {
         return postService.createPost(request);
     }
 
-    @GetMapping("/{postsId}")
-    public ResponseEntity<? super PostResponseDTO> getPost(@PathVariable Long postsId) {
-        return postService.getPostById(postsId);
+    @GetMapping("/{postId}")
+    public ResponseEntity<? super PostResponseDTO> getPost(@PathVariable Long postId) {
+        return postService.getPostById(postId);
     }
 
-    @PostMapping("/{postsId}/comments")
-    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> createComment(@PathVariable Long postsId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
-        return postService.createPostComment(request,postsId);
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> createComment(@PathVariable Long postId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
+        return postService.createPostComment(request,postId);
     }
 
-    @PatchMapping("/{postsId}")
-    public ResponseEntity<? super PostCreateUpdateResponseDTO> updatePost(@PathVariable Long postsId, @Valid @RequestBody PostCreateUpdateRequestDTO request) {
-        return postService.updatePost(request,postsId);
+    @PatchMapping("/{postId}")
+    public ResponseEntity<? super PostCreateUpdateResponseDTO> updatePost(@PathVariable Long postId, @Valid @RequestBody PostCreateUpdateRequestDTO request) {
+        return postService.updatePost(request,postId);
     }
 
     @PatchMapping("/comments/{commentId}")
