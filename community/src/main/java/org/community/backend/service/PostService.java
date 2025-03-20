@@ -1,18 +1,18 @@
 package org.community.backend.service;
 
 import jakarta.transaction.Transactional;
-import org.community.backend.domain.post.Post;
-import org.community.backend.domain.post.PostComment;
-import org.community.backend.domain.post.PostImage;
+import org.community.backend.domain.entity.Post;
+import org.community.backend.domain.entity.PostComment;
+import org.community.backend.domain.entity.PostImage;
+import org.community.backend.domain.entity.PostLike;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
+import org.community.backend.dto.response.post.PostLikeResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
-import org.community.backend.repository.JdbcMemberRepository;
-import org.community.backend.repository.JpaPostCommentRepository;
-import org.community.backend.repository.JpaPostImageRepository;
-import org.community.backend.repository.JpaPostRepository;
+import org.community.backend.repository.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -24,12 +24,14 @@ public class PostService {
     private final JpaPostImageRepository jpaPostImageRepository;
     private final JdbcMemberRepository jdbcMemberRepository;
     private final JpaPostCommentRepository jpaPostCommentRepository;
+    private final JpaPostLikeRepository jpaPostLikeRepository;
 
-    public PostService(JpaPostRepository jpaPostRepository, JpaPostImageRepository jpaPostImageRepository,  JdbcMemberRepository jdbcMemberRepository,  JpaPostCommentRepository jpaPostCommentRepository) {
+    public PostService(JpaPostRepository jpaPostRepository, JpaPostImageRepository jpaPostImageRepository,  JdbcMemberRepository jdbcMemberRepository,  JpaPostCommentRepository jpaPostCommentRepository, JpaPostLikeRepository jpaPostLikeRepository) {
         this.jpaPostRepository = jpaPostRepository;
         this.jpaPostImageRepository = jpaPostImageRepository;
         this.jdbcMemberRepository = jdbcMemberRepository;
         this.jpaPostCommentRepository = jpaPostCommentRepository;
+        this.jpaPostLikeRepository = jpaPostLikeRepository;
     }
 
     @Transactional
@@ -133,6 +135,30 @@ public class PostService {
             return PostCommentCreateUpdateResponseDTO.commentNotFound();
         } catch (Exception e) {
             return PostCommentCreateUpdateResponseDTO.databaseError();
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<? super PostLikeResponseDTO> togglePostLike(PostLikeRequestDTO postLikeRequestDTO, Long postId) {
+        try {
+            Optional<Post> post = jpaPostRepository.findById(postId);
+            if (post.isPresent()) {
+                Post postEntity = post.get();
+                Optional<PostLike> existingLike = jpaPostLikeRepository.findByMemberIdAndPost(postLikeRequestDTO.getUser_id(), postEntity);
+                if (existingLike.isPresent()) {
+                    jpaPostLikeRepository.delete(existingLike.get());
+                    postEntity.decrementLikeCount();
+                    return PostLikeResponseDTO.success();
+                }
+                PostLike postLike = new PostLike(postLikeRequestDTO.getUser_id(), postEntity);
+                jpaPostLikeRepository.save(postLike);
+                postEntity.incrementLikeCount();
+                return PostLikeResponseDTO.success();
+
+            }
+            return PostLikeResponseDTO.postNotFound();
+        } catch (Exception e) {
+            return PostLikeResponseDTO.databaseError();
         }
     }
 }

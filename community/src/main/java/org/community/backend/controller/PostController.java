@@ -3,8 +3,10 @@ package org.community.backend.controller;
 import jakarta.validation.Valid;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
+import org.community.backend.dto.response.post.PostLikeResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
 import org.community.backend.service.PostService;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +45,11 @@ public class PostController {
     @PatchMapping("/comments/{commentId}")
     public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> updateComment(@PathVariable Long commentId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
         return postService.updateComment(request,commentId);
+    }
+
+    @PutMapping("/likes/{postId}")
+    public ResponseEntity<? super PostLikeResponseDTO> togglePostLike(@PathVariable Long postId, @RequestBody PostLikeRequestDTO request) {
+        return postService.togglePostLike(request, postId);
     }
 }
 

@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.community.backend.common.response.ApiResponse;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.common.response.ResponseMessage;
-import org.community.backend.domain.post.Post;
+import org.community.backend.domain.entity.Post;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 

@@ -1,4 +1,4 @@
-package org.community.backend.domain.post;
+package org.community.backend.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -53,6 +53,10 @@ public class Post {
 
     public void incrementCommentCount() {
         this.commentCount++;
+    }
+
+    public void decrementLikeCount() {
+        this.likeCount--;
     }
 
     public void updatePost(PostCreateUpdateRequestDTO postCreateUpdateRequestDTO) {

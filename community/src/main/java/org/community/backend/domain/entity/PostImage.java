@@ -1,4 +1,4 @@
-package org.community.backend.domain.post;
+package org.community.backend.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
