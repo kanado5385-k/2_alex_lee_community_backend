@@ -10,6 +10,7 @@ public class ResponseCode {
     public static final String SIGN_IN_FAIL = "SF";
     public static final String NOT_EXISTED_POST = "NP";
     public static final String PERMITTED_ERROR = "PE";
+    public static final String NOT_EXISTED_COMMENT = "NC";
 
     // 500
     public static final String INTERNAL_SERVER_ERROR = "ISE";

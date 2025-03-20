@@ -25,7 +25,7 @@ public class PostController {
         return postService.createPost(request);
     }
 
-    @GetMapping("{postsId}")
+    @GetMapping("/{postsId}")
     public ResponseEntity<? super PostResponseDTO> getPost(@PathVariable Long postsId) {
         return postService.getPostById(postsId);
     }
@@ -35,9 +35,14 @@ public class PostController {
         return postService.createPostComment(request,postsId);
     }
 
-    @PatchMapping("{postsId}")
+    @PatchMapping("/{postsId}")
     public ResponseEntity<? super PostCreateUpdateResponseDTO> updatePost(@PathVariable Long postsId, @Valid @RequestBody PostCreateUpdateRequestDTO request) {
         return postService.updatePost(request,postsId);
+    }
+
+    @PatchMapping("/comments/{commentId}")
+    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> updateComment(@PathVariable Long commentId, @Valid @RequestBody PostCommentCreateUpdateRequestDTO request) {
+        return postService.updateComment(request,commentId);
     }
 }
 

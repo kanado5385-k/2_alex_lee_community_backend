@@ -1,11 +1,14 @@
 package org.community.backend.domain.post;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class PostComment {
 
@@ -30,5 +33,9 @@ public class PostComment {
         this.memberId = memberId;
         this.post = post;
         this.content = content;
+    }
+
+    public void updateComment(PostCommentCreateUpdateRequestDTO postCommentCreateUpdateRequestDTO) {
+        this.content = postCommentCreateUpdateRequestDTO.getComment_content();
     }
 }

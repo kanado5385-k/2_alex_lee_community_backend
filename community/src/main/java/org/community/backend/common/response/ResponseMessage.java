@@ -10,6 +10,7 @@ public class ResponseMessage {
     public static final String SIGN_IN_FAIL = "Login information mismatch.";
     public static final String NOT_EXISTED_POST = "This post does not exist.";
     public static final String PERMITTED_ERROR = "Permission error.";
+    public static final String NOT_EXISTED_COMMENT = "This comment does not exist.";
 
     // 500
     public static final String INTERNAL_SERVER_ERROR = "Internal Server Error.";

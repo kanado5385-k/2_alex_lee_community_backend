@@ -114,4 +114,25 @@ public class PostService {
             return PostCreateUpdateResponseDTO.databaseError();
         }
     }
+
+    public ResponseEntity<? super PostCommentCreateUpdateResponseDTO> updateComment(PostCommentCreateUpdateRequestDTO postCommentCreateRequestDTO, Long commentId) {
+        try {
+            Optional<PostComment> postComment = jpaPostCommentRepository.findById(commentId);
+            if (postComment.isPresent()) {
+                PostComment postCommentEntity = postComment.get();
+                Long memberId = postCommentEntity.getMemberId();
+                if (!postCommentCreateRequestDTO.getUser_id().equals(memberId)) {
+                    return PostCommentCreateUpdateResponseDTO.notHavePermission();
+                }
+
+                postCommentEntity.updateComment(postCommentCreateRequestDTO);
+                jpaPostCommentRepository.save(postCommentEntity);
+
+                return PostCommentCreateUpdateResponseDTO.success();
+            }
+            return PostCommentCreateUpdateResponseDTO.commentNotFound();
+        } catch (Exception e) {
+            return PostCommentCreateUpdateResponseDTO.databaseError();
+        }
+    }
 }
