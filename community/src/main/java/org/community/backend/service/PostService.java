@@ -6,6 +6,7 @@ import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.entity.PostImage;
 import org.community.backend.domain.entity.PostLike;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.dto.response.post.*;
@@ -203,4 +204,22 @@ public class PostService {
             return PostCommentListResponseDTO.databaseError();
         }
     }
+
+    public ResponseEntity<? super PostCommentDeleteResponseDTO> deleteComment(PostCommentDeleteRequestDTO postCommentDeleteRequestDTO, Long commentId) {
+        try {
+            PostComment postComment = jpaPostCommentRepository.getReferenceById(commentId);
+            Long memberId = postComment.getMemberId();
+            if (!postCommentDeleteRequestDTO.getUser_id().equals(memberId)) {
+                return PostCommentDeleteResponseDTO.notHavePermission();
+            }
+
+            jpaPostCommentRepository.delete(postComment);
+            return PostCommentDeleteResponseDTO.success();
+        }
+        catch (Exception e) {
+            return PostCommentDeleteResponseDTO.databaseError();
+        }
+    }
+
+
 }

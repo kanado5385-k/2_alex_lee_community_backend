@@ -2,6 +2,7 @@ package org.community.backend.controller;
 
 import jakarta.validation.Valid;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.dto.response.post.*;
@@ -57,6 +58,11 @@ public class PostController {
     @GetMapping("/{postId}/comments")
     public ResponseEntity<? super PostCommentListResponseDTO> getCommentsByPostId(@PathVariable Long postId) {
         return postService.getAllCommentsByPostId(postId);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<? super PostCommentDeleteResponseDTO> deleteComment(@PathVariable Long commentId, @RequestBody PostCommentDeleteRequestDTO request) {
+        return postService.deleteComment(request, commentId);
     }
 }
 
