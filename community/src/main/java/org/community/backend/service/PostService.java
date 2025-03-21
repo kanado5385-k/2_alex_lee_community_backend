@@ -205,6 +205,7 @@ public class PostService {
         }
     }
 
+    @Transactional
     public ResponseEntity<? super PostCommentDeleteResponseDTO> deleteComment(PostCommentDeleteRequestDTO postCommentDeleteRequestDTO, Long commentId) {
         try {
             PostComment postComment = jpaPostCommentRepository.getReferenceById(commentId);
@@ -212,6 +213,8 @@ public class PostService {
             if (!postCommentDeleteRequestDTO.getUser_id().equals(memberId)) {
                 return PostCommentDeleteResponseDTO.notHavePermission();
             }
+
+            postComment.getPost().decrementCommentCount();
 
             jpaPostCommentRepository.delete(postComment);
             return PostCommentDeleteResponseDTO.success();

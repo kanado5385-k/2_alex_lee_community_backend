@@ -59,6 +59,10 @@ public class Post {
         this.likeCount--;
     }
 
+    public void decrementCommentCount() {
+        this.commentCount--;
+    }
+
     public void updatePost(PostCreateUpdateRequestDTO postCreateUpdateRequestDTO) {
         this.title = postCreateUpdateRequestDTO.getPost_title();
         this.content = postCreateUpdateRequestDTO.getPost_content();
