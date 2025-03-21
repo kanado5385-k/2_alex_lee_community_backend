@@ -16,9 +16,4 @@ public class PostCommentDeleteResponseDTO extends ApiResponse {
         PostCommentDeleteResponseDTO result = new PostCommentDeleteResponseDTO();
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
-
-    public static ResponseEntity<ApiResponse> notHavePermission() {
-        ApiResponse response = new ApiResponse(ResponseCode.PERMITTED_ERROR, ResponseMessage.PERMITTED_ERROR);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
 }
