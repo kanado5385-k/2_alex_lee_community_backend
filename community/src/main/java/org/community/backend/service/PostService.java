@@ -5,10 +5,7 @@ import org.community.backend.domain.entity.Post;
 import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.entity.PostImage;
 import org.community.backend.domain.entity.PostLike;
-import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
-import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
-import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
-import org.community.backend.dto.request.post.PostLikeRequestDTO;
+import org.community.backend.dto.request.post.*;
 import org.community.backend.dto.response.post.*;
 import org.community.backend.repository.*;
 import org.springframework.http.ResponseEntity;
@@ -221,6 +218,23 @@ public class PostService {
         }
         catch (Exception e) {
             return PostCommentDeleteResponseDTO.databaseError();
+        }
+    }
+
+    @Transactional
+    public ResponseEntity<? super PostDeleteResponseDTO> deletePost(PostDeleteRequestDTO postDeleteRequestDTO, Long postId) {
+        try {
+            Post post = jpaPostRepository.getReferenceById(postId);
+            Long memberId = post.getMemberId();
+            if (!postDeleteRequestDTO.getUser_id().equals(memberId)) {
+                return PostDeleteResponseDTO.notHavePermission();
+            }
+
+            jpaPostRepository.delete(post);
+            return PostDeleteResponseDTO.success();
+        }
+        catch (Exception e) {
+            return PostDeleteResponseDTO.databaseError();
         }
     }
 
