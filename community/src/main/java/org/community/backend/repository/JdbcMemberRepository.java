@@ -93,7 +93,7 @@ public class JdbcMemberRepository {
     }
 
     @Transactional
-    public void updateMemberInfo(int memberId, String newNickname, String newImageUrl) {
+    public void updateMemberInfoWithImage(int memberId, String newNickname, String newImageUrl) {
         // 닉네임 업데이트
         String updateNicknameSql = "UPDATE member SET nickname = ? WHERE id = ?";
         int nicknameUpdated = jdbcTemplate.update(updateNicknameSql, newNickname, memberId);
@@ -107,6 +107,13 @@ public class JdbcMemberRepository {
             String insertImageSql = "INSERT INTO member_profile_image (member_id, image_url) VALUES (?, ?)";
             jdbcTemplate.update(insertImageSql, memberId, newImageUrl);
         }
+    }
+
+    @Transactional
+    public void updateMemberNickname(int memberId, String newNickname) {
+        // 닉네임 업데이트
+        String updateNicknameSql = "UPDATE member SET nickname = ? WHERE id = ?";
+        int nicknameUpdated = jdbcTemplate.update(updateNicknameSql, newNickname, memberId);
     }
 
     public void updateMemberPassword(int memberId, String password) {

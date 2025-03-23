@@ -83,7 +83,11 @@ public class MemberService {
 
     public ResponseEntity<? super MemberInfChangeResponseDTO> changeMemberInf(MemberInfChangeRequestDTO request) {
         try {
-            jdbcMemberRepository.updateMemberInfo(request.getUser_id(), request.getNickname(), request.getProfile_image());
+            if(request.getProfile_image() != null && !request.getProfile_image().isEmpty()) {
+                jdbcMemberRepository.updateMemberInfoWithImage(request.getUser_id(), request.getNickname(), request.getProfile_image());
+                return MemberInfChangeResponseDTO.success();
+            }
+            jdbcMemberRepository.updateMemberNickname(request.getUser_id(), request.getNickname());
             return MemberInfChangeResponseDTO.success();
         }
         catch (Exception e) {

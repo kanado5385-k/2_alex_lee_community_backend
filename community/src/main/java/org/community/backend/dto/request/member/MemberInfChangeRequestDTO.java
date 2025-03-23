@@ -14,6 +14,5 @@ public class MemberInfChangeRequestDTO {
     @NotBlank
     private String nickname;
 
-    @NotBlank
     private String profile_image;
 }
