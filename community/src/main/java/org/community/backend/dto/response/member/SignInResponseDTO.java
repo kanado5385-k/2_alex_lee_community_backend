@@ -9,15 +9,15 @@ import org.springframework.http.ResponseEntity;
 
 @Getter
 public class SignInResponseDTO extends ApiResponse {
-    private int memberId;
+    private int user_id;
 
-    public SignInResponseDTO(int memberId) {
+    public SignInResponseDTO(int user_id) {
         super(ResponseCode.SUCCESS, ResponseMessage.SUCCESS);
-        this.memberId = memberId;
+        this.user_id = user_id;
     }
 
-    public static ResponseEntity<SignInResponseDTO> success(int memberId) {
-        SignInResponseDTO result = new SignInResponseDTO(memberId);
+    public static ResponseEntity<SignInResponseDTO> success(int user_id) {
+        SignInResponseDTO result = new SignInResponseDTO(user_id);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
