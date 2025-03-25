@@ -4,10 +4,12 @@ import org.community.backend.common.response.ApiResponse;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
+import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.dto.response.member.MemberInfChangeResponseDTO;
 import org.community.backend.dto.response.member.MemberInfResponseDTO;
+import org.community.backend.dto.response.member.MemberPasswordChangeResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -261,4 +263,38 @@ class MemberServiceTest {
         assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
         verify(jdbcMemberRepository, never()).updateMemberNickname(anyInt(), anyString());
     }
+
+    @Test
+    @DisplayName("사용자 비밀번호 수정 성공")
+    void changeMemberPassword_shouldReturnSuccess() {
+        // given
+        MemberPasswordChangeRequestDTO memberPasswordChangeRequestDTO = new MemberPasswordChangeRequestDTO(userId, rawPassword);
+
+        // when
+        ResponseEntity<?> response = memberService.changeMemberPassword(memberPasswordChangeRequestDTO);
+        MemberPasswordChangeResponseDTO body = (MemberPasswordChangeResponseDTO) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, body.getCode());
+        verify(jdbcMemberRepository, times(1)).updateMemberPassword(userId, rawPassword);
+    }
+
+    @Test
+    @DisplayName("사용자 비밀번호 수정 실패 - 서버 오류")
+    void changeMemberPassword_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        MemberPasswordChangeRequestDTO memberPasswordChangeRequestDTO = new MemberPasswordChangeRequestDTO(userId, rawPassword);
+        doThrow(new RuntimeException())
+                .when(jdbcMemberRepository)
+                .updateMemberPassword(userId, rawPassword);
+
+        // when
+        ResponseEntity<?> response = memberService.changeMemberPassword(memberPasswordChangeRequestDTO);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
+    }
+
+
 }
