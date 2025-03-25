@@ -5,6 +5,7 @@ import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDTO;
+import org.community.backend.dto.response.member.MemberInfResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ class MemberServiceTest {
     private final String rawEmail = "test@email.com";
     private final String rawPassword = "password123";
     private final String rawNickname = "nickname";
+    private final String rawImage = "profile.jpg";
     private final String savedPassword = "password123";
 
     @Mock
@@ -74,8 +76,6 @@ class MemberServiceTest {
     @Test
     @DisplayName("회원가입 성공 - 이미지 포함")
     void registerMember_shouldRegisterSuccessfully_withProfileImage() {
-        String rawImage = "profile.jpg";
-
         // given
         SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, rawImage);
         when(jdbcMemberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
@@ -180,4 +180,35 @@ class MemberServiceTest {
         verify(jdbcMemberRepository, times(1)).findPasswordById(userId);
     }
 
+    @Test
+    @DisplayName("사용자 정보 반환 성공")
+    void getMemberInf_shouldReturnSuccess() {
+        //given
+        when(jdbcMemberRepository.findUserById(userId)).thenReturn(Optional.of(new Member(rawNickname, rawImage)));
+
+        // when
+        ResponseEntity<?> response = memberService.getMemberInf(userId);
+        MemberInfResponseDTO body = (MemberInfResponseDTO) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, body.getCode());
+        assertEquals(rawNickname, body.getNickname());
+        assertEquals(rawImage, body.getProfileImage());
+        verify(jdbcMemberRepository, times(1)).findUserById(userId);
+    }
+
+    @Test
+    @DisplayName("사용자 정보 반환 실패 - 서버 오류")
+    void getMemberInf_shouldReturnServerError_whenExceptionOccurs() {
+        //given
+        when(jdbcMemberRepository.findUserById(userId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> response = memberService.getMemberInf(userId);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
+        verify(jdbcMemberRepository, times(1)).findUserById(userId);
+    }
 }
