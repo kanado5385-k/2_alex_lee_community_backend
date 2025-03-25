@@ -3,8 +3,10 @@ package org.community.backend.service;
 import org.community.backend.common.response.ApiResponse;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
+import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDTO;
+import org.community.backend.dto.response.member.MemberInfChangeResponseDTO;
 import org.community.backend.dto.response.member.MemberInfResponseDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
@@ -210,5 +212,53 @@ class MemberServiceTest {
         // then
         assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
         verify(jdbcMemberRepository, times(1)).findUserById(userId);
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 성공 - 이미지 포함")
+    void changeMemberInf_shouldReturnSuccess_withImage() {
+        // given
+        MemberInfChangeRequestDTO memberInfChangeRequestDTO = new MemberInfChangeRequestDTO(userId, rawNickname, rawImage);
+
+        // when
+        ResponseEntity<?> response = memberService.changeMemberInf(memberInfChangeRequestDTO);
+        MemberInfChangeResponseDTO body = (MemberInfChangeResponseDTO) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, body.getCode());
+        verify(jdbcMemberRepository, times(1)).updateMemberInfoWithImage(userId, rawNickname, rawImage);
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 성공 - 이미지 미포함")
+    void changeMemberInf_shouldReturnSuccess_withoutImage() {
+        // given
+        MemberInfChangeRequestDTO memberInfChangeRequestDTO = new MemberInfChangeRequestDTO(userId, rawNickname, null);
+
+        // when
+        ResponseEntity<?> response = memberService.changeMemberInf(memberInfChangeRequestDTO);
+        MemberInfChangeResponseDTO body = (MemberInfChangeResponseDTO) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, body.getCode());
+        verify(jdbcMemberRepository, times(1)).updateMemberNickname(userId, rawNickname);
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 실패 - 서버 오류")
+    void changeMemberInf_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        MemberInfChangeRequestDTO memberInfChangeRequestDTO = new MemberInfChangeRequestDTO(userId, rawNickname, rawImage);
+        doThrow(new RuntimeException())
+                .when(jdbcMemberRepository)
+                .updateMemberInfoWithImage(userId, rawNickname, rawImage);
+
+        // when
+        ResponseEntity<?> response = memberService.changeMemberInf(memberInfChangeRequestDTO);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
+        verify(jdbcMemberRepository, never()).updateMemberNickname(anyInt(), anyString());
     }
 }
