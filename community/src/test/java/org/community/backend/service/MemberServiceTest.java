@@ -40,7 +40,7 @@ class MemberServiceTest {
         // given
         SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, null);
         when(jdbcMemberRepository.findByEmail(request.getEmail()))
-                .thenReturn(Optional.of(new Member(rawEmail, rawPassword, "nickname")));
+                .thenReturn(Optional.of(new Member(rawEmail, rawPassword, rawNickname)));
         // DB를 조회하지 않고, 직접 만든 Member 객체가 리턴되게 Mock하는 코드
 
         // when
@@ -79,7 +79,7 @@ class MemberServiceTest {
         // given
         SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, rawImage);
         when(jdbcMemberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
-        when(jdbcMemberRepository.save(any(Member.class))).thenReturn(1);
+        when(jdbcMemberRepository.save(any(Member.class))).thenReturn(userId);
 
         // when
         ResponseEntity<?> response = memberService.registerMember(request);
@@ -87,14 +87,14 @@ class MemberServiceTest {
 
         // then
         assertEquals(ResponseCode.SUCCESS, body.getCode());
-        verify(jdbcMemberRepository, times(1)).saveProfileImage(eq(1), eq("profile.jpg"));
+        verify(jdbcMemberRepository, times(1)).saveProfileImage(eq(userId), eq(rawImage));
     }
 
     @Test
     @DisplayName("회원가입 실패 - 서버 오류")
     void registerMember_shouldReturnDatabaseError_whenExceptionOccurs() {
         // given
-        SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, "nickname", null);
+        SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, null);
         when(jdbcMemberRepository.findByEmail(anyString())).thenThrow(new RuntimeException());
 
         // when
@@ -121,7 +121,7 @@ class MemberServiceTest {
         assertEquals(ResponseCode.SUCCESS, body.getCode());
         assertEquals(userId, body.getUser_id());
         verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
-        verify(jdbcMemberRepository, times(1)).findPasswordById(1);
+        verify(jdbcMemberRepository, times(1)).findPasswordById(userId);
     }
 
     @Test
@@ -159,7 +159,7 @@ class MemberServiceTest {
         // then
         assertEquals(ResponseCode.SIGN_IN_FAIL, body.getCode());
         verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
-        verify(jdbcMemberRepository, times(1)).findPasswordById(1);
+        verify(jdbcMemberRepository, times(1)).findPasswordById(userId);
     }
 
     @Test
@@ -177,6 +177,7 @@ class MemberServiceTest {
         // then
         assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
         verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
-        verify(jdbcMemberRepository, times(1)).findPasswordById(1);
+        verify(jdbcMemberRepository, times(1)).findPasswordById(userId);
     }
+
 }
