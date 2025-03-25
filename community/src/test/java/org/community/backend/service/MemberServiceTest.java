@@ -4,7 +4,7 @@ import org.community.backend.common.response.ApiResponse;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.member.SignInRequestDTO;
-import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ class MemberServiceTest {
     @DisplayName("회원가입 실패 - 중복 이메일")
     void registerMember_shouldReturnDuplicateEmail_whenEmailExists() {
         // given
-        SignUpRequestDto request = new SignUpRequestDto(rawEmail, rawPassword, rawNickname, null);
+        SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, null);
         when(jdbcMemberRepository.findByEmail(request.getEmail()))
                 .thenReturn(Optional.of(new Member(rawEmail, rawPassword, "nickname")));
         // DB를 조회하지 않고, 직접 만든 Member 객체가 리턴되게 Mock하는 코드
@@ -57,7 +57,7 @@ class MemberServiceTest {
     @DisplayName("회원가입 성공 - 이미지 미포함")
     void registerMember_shouldRegisterSuccessfully_withoutProfileImage() {
         // given
-        SignUpRequestDto request = new SignUpRequestDto(rawEmail, rawPassword, rawNickname, null);
+        SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, null);
         when(jdbcMemberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(jdbcMemberRepository.save(any(Member.class))).thenReturn(1);
 
@@ -77,7 +77,7 @@ class MemberServiceTest {
         String rawImage = "profile.jpg";
 
         // given
-        SignUpRequestDto request = new SignUpRequestDto(rawEmail, rawPassword, rawNickname, rawImage);
+        SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, rawNickname, rawImage);
         when(jdbcMemberRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(jdbcMemberRepository.save(any(Member.class))).thenReturn(1);
 
@@ -94,7 +94,7 @@ class MemberServiceTest {
     @DisplayName("회원가입 실패 - 서버 오류")
     void registerMember_shouldReturnDatabaseError_whenExceptionOccurs() {
         // given
-        SignUpRequestDto request = new SignUpRequestDto(rawEmail, rawPassword, "nickname", null);
+        SignUpRequestDTO request = new SignUpRequestDTO(rawEmail, rawPassword, "nickname", null);
         when(jdbcMemberRepository.findByEmail(anyString())).thenThrow(new RuntimeException());
 
         // when

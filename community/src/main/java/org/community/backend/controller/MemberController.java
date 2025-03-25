@@ -4,16 +4,12 @@ import jakarta.validation.Valid;
 import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
-import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.dto.response.member.*;
-import org.community.backend.repository.JdbcMemberRepository;
 import org.community.backend.service.MemberService;
 
-import org.community.backend.service.MemberService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping
@@ -25,7 +21,7 @@ public class MemberController {
     }
 
     @PostMapping("/users")
-    public ResponseEntity<? super SignUpResponseDto> registerMember(@Valid @RequestBody SignUpRequestDto request) {
+    public ResponseEntity<? super SignUpResponseDto> registerMember(@Valid @RequestBody SignUpRequestDTO request) {
         return memberService.registerMember(request);
     }
 

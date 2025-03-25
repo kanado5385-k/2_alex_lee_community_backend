@@ -3,7 +3,7 @@ package org.community.backend.service;
 import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
-import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.dto.response.member.*;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +23,7 @@ public class MemberService {
     }
 
     @Transactional
-    public ResponseEntity<? super SignUpResponseDto> registerMember(SignUpRequestDto request) {
+    public ResponseEntity<? super SignUpResponseDto> registerMember(SignUpRequestDTO request) {
         try {
             // 이메일 중복 체크
             if (jdbcMemberRepository.findByEmail(request.getEmail()).isPresent()) {

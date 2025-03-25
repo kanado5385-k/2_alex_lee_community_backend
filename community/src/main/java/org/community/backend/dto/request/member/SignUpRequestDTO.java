@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SignUpRequestDto {
+public class SignUpRequestDTO {
 
     @Email
     @NotBlank
