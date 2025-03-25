@@ -3,7 +3,9 @@ package org.community.backend.service;
 import org.community.backend.common.response.ApiResponse;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
+import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDto;
+import org.community.backend.dto.response.member.SignInResponseDTO;
 import org.community.backend.dto.response.member.SignUpResponseDto;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
+    private final int userId = 1;
+    private final String rawEmail = "test@email.com";
+    private final String rawPassword = "password123";
+    private final String savedPassword = "password123";
 
     @Mock
     private JdbcMemberRepository jdbcMemberRepository;
@@ -36,7 +42,7 @@ class MemberServiceTest {
         // given
         SignUpRequestDto request = new SignUpRequestDto("test@email.com", "password123", "nickname", null);
         when(jdbcMemberRepository.findByEmail(request.getEmail()))
-                .thenReturn(Optional.of(new Member("tes@email.com", "password123", "nickname")));
+                .thenReturn(Optional.of(new Member("test@email.com", "password123", "nickname")));
         // DB를 조회하지 않고, 직접 만든 Member 객체가 리턴되게 Mock하는 코드
 
         // when
@@ -97,5 +103,80 @@ class MemberServiceTest {
 
         // then
         assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
+    }
+
+    @Test
+    @DisplayName("로그인 성공")
+    void signIn_shouldReturnSuccess_whenUserIsSignedIn() {
+        // given
+        SignInRequestDTO request = new SignInRequestDTO(rawEmail, rawPassword);
+        when(jdbcMemberRepository.findIdByEmail(request.getEmail())).thenReturn(Optional.of(userId));
+        when(jdbcMemberRepository.findPasswordById(userId)).thenReturn(Optional.of(savedPassword));
+
+        // when
+        ResponseEntity<?> response = memberService.signInMember(request);
+        SignInResponseDTO body = (SignInResponseDTO) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, body.getCode());
+        assertEquals(userId, body.getUser_id());
+        verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
+        verify(jdbcMemberRepository, times(1)).findPasswordById(1);
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 이메일 틀림")
+    void signIn_shouldReturnMismatchLoginInf_whenWrongEmail() {
+
+        // given
+        SignInRequestDTO request = new SignInRequestDTO(rawEmail, rawPassword);
+        when(jdbcMemberRepository.findIdByEmail(request.getEmail())).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> response = memberService.signInMember(request);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SIGN_IN_FAIL, body.getCode());
+        verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
+        verify(jdbcMemberRepository, never()).findPasswordById(anyInt());
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 비밀번호 틀림")
+    void signIn_shouldReturnMismatchLoginInf_whenWrongPassword() {
+        String wrongPassword = "wrongPassword";
+
+        // given
+        SignInRequestDTO request = new SignInRequestDTO(rawEmail, wrongPassword);
+        when(jdbcMemberRepository.findIdByEmail(request.getEmail())).thenReturn(Optional.of(userId));
+        when(jdbcMemberRepository.findPasswordById(userId)).thenReturn(Optional.of(savedPassword));
+
+        // when
+        ResponseEntity<?> response = memberService.signInMember(request);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.SIGN_IN_FAIL, body.getCode());
+        verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
+        verify(jdbcMemberRepository, times(1)).findPasswordById(1);
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 서버 오류")
+    void signIn_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        SignInRequestDTO request = new SignInRequestDTO(rawEmail, rawPassword);
+        when(jdbcMemberRepository.findIdByEmail(request.getEmail())).thenReturn(Optional.of(userId));
+        when(jdbcMemberRepository.findPasswordById(userId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> response = memberService.signInMember(request);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
+        verify(jdbcMemberRepository, times(1)).findIdByEmail(request.getEmail());
+        verify(jdbcMemberRepository, times(1)).findPasswordById(1);
     }
 }
