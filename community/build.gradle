@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco' // ✅ JaCoCo 플러그인 추가
 }
 
 group = 'org.community'
@@ -37,4 +38,17 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.10" // ✅ 최신 안정 버전
+}
+
+jacocoTestReport {
+    dependsOn test // ✅ 테스트 후 리포트 생성되도록 설정
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
 }
