@@ -7,10 +7,7 @@ import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDTO;
-import org.community.backend.dto.response.member.MemberInfChangeResponseDTO;
-import org.community.backend.dto.response.member.MemberInfResponseDTO;
-import org.community.backend.dto.response.member.MemberPasswordChangeResponseDTO;
-import org.community.backend.dto.response.member.SignInResponseDTO;
+import org.community.backend.dto.response.member.*;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -296,5 +293,30 @@ class MemberServiceTest {
         assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
     }
 
+    @Test
+    @DisplayName("사용자 탈퇴 성공")
+    void deleteMember_shouldReturnSuccess() {
+        // when
+        ResponseEntity<?> response = memberService.deleteMember(userId);
+        MemberDeleteResponseDTO body = (MemberDeleteResponseDTO) response.getBody();
 
+        // then
+        assertEquals(ResponseCode.SUCCESS, body.getCode());
+        verify(jdbcMemberRepository, times(1)).deleteMember(userId);
+    }
+
+    @Test
+    @DisplayName("사용자 탈퇴 실패 - 서버 오류")
+    void deleteMember_shouldReturnServerError_whenExceptionOccurs() {
+        //given
+        doThrow(new RuntimeException())
+            .when(jdbcMemberRepository).deleteMember(userId);
+
+        // when
+        ResponseEntity<?> response = memberService.deleteMember(userId);
+        ApiResponse body = (ApiResponse) response.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, body.getCode());
+    }
 }
