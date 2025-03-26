@@ -9,10 +9,7 @@ import org.community.backend.domain.entity.PostLike;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostLikeRequestDTO;
-import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
-import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
-import org.community.backend.dto.response.post.PostLikeResponseDTO;
-import org.community.backend.dto.response.post.PostResponseDTO;
+import org.community.backend.dto.response.post.*;
 import org.community.backend.repository.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +24,7 @@ import org.community.backend.repository.JdbcMemberRepository;
 import org.community.backend.repository.JpaPostLikeRepository;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -460,6 +458,63 @@ public class PostServiceTest {
         verify(jpaPostLikeRepository, never()).save(any(PostLike.class));
         verify(jpaPostLikeRepository, never()).delete(any(PostLike.class));
     }
+
+    @Test
+    @DisplayName("게시글 목록 조회 성공 - 게시글 있음")
+    void getAllPosts_shouldReturnSuccess_whenPostsExist() {
+        String postTitle2 = "test post2";
+        String postContent2 = "test post content2";
+
+        // given
+        Post post1 = new Post(userId, postTitle, postContent);
+        Post post2 = new Post(userId, postTitle2, postContent2);
+
+        List<Post> postList = List.of(post1, post2);
+        when(jpaPostRepository.findAll()).thenReturn(postList);
+        when(jdbcMemberRepository.findEmailById(userId)).thenReturn(Optional.of(userEmail));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllPosts();
+        PostListResponseDTO responseDTO = (PostListResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        verify(jpaPostRepository, times(1)).findAll();
+        verify(jdbcMemberRepository, times(2)).findEmailById(userId); // 두 게시글 모두 같은 userId
+    }
+
+    @Test
+    @DisplayName("게시글 목록 조회 실패 - 게시글 없음")
+    void getAllPosts_shouldReturnNoAnyPostFound_whenPostsEmpty() {
+        // given
+        when(jpaPostRepository.findAll()).thenReturn(List.of());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllPosts();
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NO_ANY_POST, response.getCode());
+        verify(jpaPostRepository, times(1)).findAll();
+        verify(jdbcMemberRepository, never()).findEmailById(anyLong());
+    }
+
+    @Test
+    @DisplayName("게시글 목록 조회 실패 - 서버 오류")
+    void getAllPosts_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        when(jpaPostRepository.findAll()).thenThrow(RuntimeException.class);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllPosts();
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, response.getCode());
+        verify(jpaPostRepository, times(1)).findAll();
+        verify(jdbcMemberRepository, never()).findEmailById(anyLong());
+    }
+
 
 
 }
