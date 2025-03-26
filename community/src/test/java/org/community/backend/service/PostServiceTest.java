@@ -515,6 +515,86 @@ public class PostServiceTest {
         verify(jdbcMemberRepository, never()).findEmailById(anyLong());
     }
 
+    @Test
+    @DisplayName("댓글 목록 조회 성공 - 댓글 있음")
+    void getAllCommentsByPostId_shouldReturnSuccess_whenCommentsExist() {
+        String commentContent2 = "test comment content2";
+
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostComment comment1 = new PostComment(userId, post, commentContent);
+        PostComment comment2 = new PostComment(userId, post, commentContent2);
+
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(jpaPostCommentRepository.findByPostIdOrderByCreatedAtDesc(postId)).thenReturn(List.of(comment1, comment2));
+        when(jdbcMemberRepository.findEmailById(userId)).thenReturn(Optional.of(userEmail));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllCommentsByPostId(postId);
+        PostCommentListResponseDTO responseDTO = (PostCommentListResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        assertEquals(2, responseDTO.getCommentList().size());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostCommentRepository, times(1)).findByPostIdOrderByCreatedAtDesc(postId);
+        verify(jdbcMemberRepository, times(2)).findEmailById(userId); // 두 댓글 모두 같은 userId
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 게시글 없음")
+    void getAllCommentsByPostId_shouldReturnPostNotFound_whenPostDoesNotExist() {
+        // given
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllCommentsByPostId(postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NOT_EXISTED_POST, response.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostCommentRepository, never()).findByPostIdOrderByCreatedAtDesc(postId);
+        verify(jdbcMemberRepository, never()).findEmailById(anyLong());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 댓글 없음")
+    void getAllCommentsByPostId_shouldReturnNoAnyCommentFound_whenNoCommentsExist() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(jpaPostCommentRepository.findByPostIdOrderByCreatedAtDesc(postId)).thenReturn(List.of());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllCommentsByPostId(postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NO_ANY_COMMENT, response.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostCommentRepository, times(1)).findByPostIdOrderByCreatedAtDesc(postId);
+        verify(jdbcMemberRepository, never()).findEmailById(anyLong());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 서버 오류")
+    void getAllCommentsByPostId_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        when(jpaPostRepository.findById(postId)).thenThrow(RuntimeException.class);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.getAllCommentsByPostId(postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, response.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostCommentRepository, never()).findByPostIdOrderByCreatedAtDesc(anyLong());
+        verify(jdbcMemberRepository, never()).findEmailById(anyLong());
+    }
+
+
 
 
 }
