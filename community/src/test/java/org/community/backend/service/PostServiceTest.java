@@ -6,10 +6,7 @@ import org.community.backend.domain.entity.Post;
 import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.entity.PostImage;
 import org.community.backend.domain.entity.PostLike;
-import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
-import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
-import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
-import org.community.backend.dto.request.post.PostLikeRequestDTO;
+import org.community.backend.dto.request.post.*;
 import org.community.backend.dto.response.post.*;
 import org.community.backend.repository.*;
 import org.junit.jupiter.api.DisplayName;
@@ -652,8 +649,58 @@ public class PostServiceTest {
         verify(jpaPostCommentRepository, never()).delete(any(PostComment.class));
     }
 
+    @Test
+    @DisplayName("게시글 삭제 성공 - 권한 있음")
+    void deletePost_shouldReturnSuccess_whenUserHasPermission() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostDeleteRequestDTO requestDTO = new PostDeleteRequestDTO(userId);
 
+        when(jpaPostRepository.getReferenceById(postId)).thenReturn(post);
 
+        // when
+        ResponseEntity<?> responseEntity = postService.deletePost(requestDTO, postId);
+        PostDeleteResponseDTO responseDTO = (PostDeleteResponseDTO) responseEntity.getBody();
 
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        verify(jpaPostRepository, times(1)).getReferenceById(postId);
+        verify(jpaPostRepository, times(1)).delete(post);
+    }
 
+    @Test
+    @DisplayName("게시글 삭제 실패 - 권한 없음")
+    void deletePost_shouldReturnNotHavePermission_whenUserIsNotOwner() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostDeleteRequestDTO requestDTO = new PostDeleteRequestDTO(wrongUserId);
+
+        when(jpaPostRepository.getReferenceById(postId)).thenReturn(post);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.deletePost(requestDTO, postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.PERMITTED_ERROR, response.getCode());
+        verify(jpaPostRepository, times(1)).getReferenceById(postId);
+        verify(jpaPostRepository, never()).delete(any(Post.class));
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 서버 오류")
+    void deletePost_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        PostDeleteRequestDTO requestDTO = new PostDeleteRequestDTO(userId);
+        doThrow(RuntimeException.class).when(jpaPostRepository).getReferenceById(postId);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.deletePost(requestDTO, postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, response.getCode());
+        verify(jpaPostRepository, times(1)).getReferenceById(postId);
+        verify(jpaPostRepository, never()).delete(any(Post.class));
+    }
 }
