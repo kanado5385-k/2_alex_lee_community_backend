@@ -5,10 +5,13 @@ import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.entity.Post;
 import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.entity.PostImage;
+import org.community.backend.domain.entity.PostLike;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
+import org.community.backend.dto.response.post.PostLikeResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
 import org.community.backend.repository.*;
 import org.junit.jupiter.api.DisplayName;
@@ -375,5 +378,88 @@ public class PostServiceTest {
         verify(jpaPostCommentRepository, times(1)).findById(anyLong());
         verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
     }
+
+    @Test
+    @DisplayName("좋아요 등록 성공 - 기존 좋아요 없음")
+    void togglePostLike_shouldReturnSuccess_whenLikeDoesNotExist() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostLikeRequestDTO requestDTO = new PostLikeRequestDTO(userId);
+
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(jpaPostLikeRepository.findByMemberIdAndPost(userId, post)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.togglePostLike(requestDTO, postId);
+        PostLikeResponseDTO responseDTO = (PostLikeResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostLikeRepository, times(1)).findByMemberIdAndPost(userId, post);
+        verify(jpaPostLikeRepository, times(1)).save(any(PostLike.class));
+        verify(jpaPostLikeRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("좋아요 취소 성공 - 기존 좋아요 있음")
+    void togglePostLike_shouldReturnSuccess_whenLikeExists() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostLikeRequestDTO requestDTO = new PostLikeRequestDTO(userId);
+        PostLike existingLike = new PostLike(userId, post);
+
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(jpaPostLikeRepository.findByMemberIdAndPost(userId, post)).thenReturn(Optional.of(existingLike));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.togglePostLike(requestDTO, postId);
+        PostLikeResponseDTO responseDTO = (PostLikeResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostLikeRepository, times(1)).findByMemberIdAndPost(userId, post);
+        verify(jpaPostLikeRepository, times(1)).delete(existingLike);
+        verify(jpaPostLikeRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("좋아요 실패 - 존재하지 않는 게시글")
+    void togglePostLike_shouldReturnNotFound_whenPostDoesNotExist() {
+        // given
+        PostLikeRequestDTO requestDTO = new PostLikeRequestDTO(userId);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.togglePostLike(requestDTO, postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NOT_EXISTED_POST, response.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostLikeRepository, never()).findByMemberIdAndPost(anyLong(), any(Post.class));
+        verify(jpaPostLikeRepository, never()).save(any(PostLike.class));
+        verify(jpaPostLikeRepository, never()).delete(any(PostLike.class));
+    }
+
+    @Test
+    @DisplayName("좋아요 실패 - 서버 오류")
+    void togglePostLike_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        PostLikeRequestDTO requestDTO = new PostLikeRequestDTO(userId);
+        doThrow(RuntimeException.class).when(jpaPostRepository).findById(postId);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.togglePostLike(requestDTO, postId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, response.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostLikeRepository, never()).save(any(PostLike.class));
+        verify(jpaPostLikeRepository, never()).delete(any(PostLike.class));
+    }
+
 
 }
