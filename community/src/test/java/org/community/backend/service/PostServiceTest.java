@@ -33,6 +33,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
     private final Long userId = 1L;
+    private final Long wrongUserId = 3L;
     private final String userEmail = "test@email.com";
 
     private final Long postId = 2L;
@@ -210,4 +211,95 @@ public class PostServiceTest {
         verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
     }
 
+    @Test
+    @DisplayName("이미지가 포함된 게시글 수정 성공 - 이미지 포함")
+    void updatePost_shouldReturnSuccess_withImage_whenImageExists() {
+        // given
+        PostCreateUpdateRequestDTO postCreateUpdateRequestDTO = new PostCreateUpdateRequestDTO(userId, postTitle, postContent, postImageUrl);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(new Post(userId, postTitle, postContent)));
+        when(jpaPostImageRepository.findByPostId(postId)).thenReturn(Optional.of(new PostImage(new Post(userId, postTitle, postContent), postImageUrl)));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updatePost(postCreateUpdateRequestDTO, postId);
+        PostCreateUpdateResponseDTO postCreateResponseDTO = (PostCreateUpdateResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, postCreateResponseDTO.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostImageRepository, times(1)).findByPostId(postId);
+        verify(jpaPostImageRepository, never()).save(any(PostImage.class));
+    }
+
+    @Test
+    @DisplayName("이미지가 미포함된 게시글 수정 성공 - 이미지 포함")
+    void updatePost_shouldReturnSuccess_withImage_whenImageNotExists() {
+        // given
+        PostCreateUpdateRequestDTO postCreateUpdateRequestDTO = new PostCreateUpdateRequestDTO(userId, postTitle, postContent, postImageUrl);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(new Post(userId, postTitle, postContent)));
+        when(jpaPostImageRepository.findByPostId(postId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updatePost(postCreateUpdateRequestDTO, postId);
+        PostCreateUpdateResponseDTO postCreateResponseDTO = (PostCreateUpdateResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, postCreateResponseDTO.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostImageRepository, times(1)).findByPostId(postId);
+        verify(jpaPostImageRepository, times(1)).save(any(PostImage.class));
+    }
+
+    @Test
+    @DisplayName("이미지가 포함된 게시글 수정 실패 - 권한 문제")
+    void updatePost_shouldReturnNotHavePermission_whenImageExists() {
+        // given
+        PostCreateUpdateRequestDTO postCreateUpdateRequestDTO = new PostCreateUpdateRequestDTO(wrongUserId, postTitle, postContent, postImageUrl);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(new Post(userId, postTitle, postContent)));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updatePost(postCreateUpdateRequestDTO, postId);
+        ApiResponse  apiResponse = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.PERMITTED_ERROR, apiResponse.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostImageRepository, never()).findById(anyLong());
+        verify(jpaPostImageRepository, never()).save(any(PostImage.class));
+    }
+
+    @Test
+    @DisplayName("이미지가 포함된 게시글 수정 실패 - 없는 게시글")
+    void updatePost_shouldReturnNotFoundPost_whenImageExists() {
+        // given
+        PostCreateUpdateRequestDTO postCreateUpdateRequestDTO = new PostCreateUpdateRequestDTO(wrongUserId, postTitle, postContent, postImageUrl);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updatePost(postCreateUpdateRequestDTO, postId);
+        ApiResponse  apiResponse = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NOT_EXISTED_POST, apiResponse.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostImageRepository, never()).findById(anyLong());
+        verify(jpaPostImageRepository, never()).save(any(PostImage.class));
+    }
+
+    @Test
+    @DisplayName("이미지가 포함된 게시글 수정 실패 - 없는 게시글")
+    void updatePost_shouldReturnServerError_whenImageExists_whenExceptionOccurs() {
+        // given
+        PostCreateUpdateRequestDTO postCreateUpdateRequestDTO = new PostCreateUpdateRequestDTO(wrongUserId, postTitle, postContent, postImageUrl);
+        doThrow(RuntimeException.class).when(jpaPostRepository).findById(postId);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updatePost(postCreateUpdateRequestDTO, postId);
+        ApiResponse  apiResponse = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, apiResponse.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostImageRepository, never()).findById(anyLong());
+        verify(jpaPostImageRepository, never()).save(any(PostImage.class));
+    }
 }
