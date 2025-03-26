@@ -3,8 +3,11 @@ package org.community.backend.service;
 import org.community.backend.common.response.ApiResponse;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.entity.Post;
+import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.entity.PostImage;
+import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
+import org.community.backend.dto.response.post.PostCommentCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostCreateUpdateResponseDTO;
 import org.community.backend.dto.response.post.PostResponseDTO;
 import org.community.backend.repository.*;
@@ -31,10 +34,13 @@ import static org.mockito.Mockito.*;
 public class PostServiceTest {
     private final Long userId = 1L;
     private final String userEmail = "test@email.com";
+
     private final Long postId = 2L;
     private final String postTitle = "test post";
     private final String postContent = "test post content";
     private final String postImageUrl = "test post image url";
+
+    private final String commentContent = "test comment content";
 
     @Mock
     private JpaPostRepository jpaPostRepository;
@@ -151,6 +157,57 @@ public class PostServiceTest {
         assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, apiResponse.getCode());
         verify(jpaPostRepository, times(1)).findById(postId);
         verify(jdbcMemberRepository, times(1)).findEmailById(userId);
+    }
+
+    @Test
+    @DisplayName("댓글 작성 성공")
+    void createPostComment_shouldReturnSuccess() {
+        // given
+        PostCommentCreateUpdateRequestDTO postCommentCreateUpdateRequestDTO = new PostCommentCreateUpdateRequestDTO(userId, commentContent);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.of(new Post(userId, postTitle, postContent)));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.createPostComment(postCommentCreateUpdateRequestDTO, postId);
+        PostCommentCreateUpdateResponseDTO postCommentCreateResponseDTO = (PostCommentCreateUpdateResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, postCommentCreateResponseDTO.getCode());
+        verify(jpaPostRepository, times(1)).findById(anyLong());
+        verify(jpaPostCommentRepository, times(1)).save(any(PostComment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 실패 - 없는 게시글")
+    void createPostComment_shouldReturnNotFoundPost() {
+        // given
+        PostCommentCreateUpdateRequestDTO postCommentCreateUpdateRequestDTO = new PostCommentCreateUpdateRequestDTO(userId, commentContent);
+        when(jpaPostRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.createPostComment(postCommentCreateUpdateRequestDTO, postId);
+        ApiResponse  apiResponse = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NOT_EXISTED_POST, apiResponse.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 실패 - 서버 오류")
+    void createPostComment_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        PostCommentCreateUpdateRequestDTO postCommentCreateUpdateRequestDTO = new PostCommentCreateUpdateRequestDTO(userId, commentContent);
+        doThrow(RuntimeException.class).when(jpaPostRepository).findById(postId);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.createPostComment(postCommentCreateUpdateRequestDTO, postId);
+        ApiResponse  apiResponse = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, apiResponse.getCode());
+        verify(jpaPostRepository, times(1)).findById(postId);
+        verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
     }
 
 }
