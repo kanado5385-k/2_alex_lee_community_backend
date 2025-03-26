@@ -42,6 +42,7 @@ public class PostServiceTest {
     private final String postImageUrl = "test post image url";
 
     private final String commentContent = "test comment content";
+    private final Long commentId = 5L;
 
     @Mock
     private JpaPostRepository jpaPostRepository;
@@ -302,4 +303,77 @@ public class PostServiceTest {
         verify(jpaPostImageRepository, never()).findById(anyLong());
         verify(jpaPostImageRepository, never()).save(any(PostImage.class));
     }
+
+    @Test
+    @DisplayName("댓글 수정 성공")
+    void updateComment_shouldReturnSuccess() {
+        // given
+        PostCommentCreateUpdateRequestDTO requestDTO = new PostCommentCreateUpdateRequestDTO(userId, commentContent);
+        PostComment existingComment = new PostComment(userId, new Post(userId, postTitle, postContent), commentContent);
+
+        when(jpaPostCommentRepository.findById(anyLong())).thenReturn(Optional.of(existingComment));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updateComment(requestDTO, commentId);
+        PostCommentCreateUpdateResponseDTO responseDTO = (PostCommentCreateUpdateResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        verify(jpaPostCommentRepository, times(1)).findById(anyLong());
+        verify(jpaPostCommentRepository, times(1)).save(any(PostComment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 존재하지 않는 댓글")
+    void updateComment_shouldReturnNotFound() {
+        // given
+        PostCommentCreateUpdateRequestDTO requestDTO = new PostCommentCreateUpdateRequestDTO(userId, commentContent);
+        when(jpaPostCommentRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updateComment(requestDTO, commentId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.NOT_EXISTED_COMMENT, response.getCode());
+        verify(jpaPostCommentRepository, times(1)).findById(anyLong());
+        verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 권한 없음")
+    void updateComment_shouldReturnNotHavePermission() {
+        // given
+        PostCommentCreateUpdateRequestDTO requestDTO = new PostCommentCreateUpdateRequestDTO(wrongUserId, commentContent);
+        PostComment existingComment = new PostComment(userId, new Post(userId, postTitle, postContent), commentContent);
+
+        when(jpaPostCommentRepository.findById(anyLong())).thenReturn(Optional.of(existingComment));
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updateComment(requestDTO, commentId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.PERMITTED_ERROR, response.getCode());
+        verify(jpaPostCommentRepository, times(1)).findById(anyLong());
+        verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 서버 오류")
+    void updateComment_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        PostCommentCreateUpdateRequestDTO requestDTO = new PostCommentCreateUpdateRequestDTO(userId, commentContent);
+        doThrow(RuntimeException.class).when(jpaPostCommentRepository).findById(anyLong());
+
+        // when
+        ResponseEntity<?> responseEntity = postService.updateComment(requestDTO, commentId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, response.getCode());
+        verify(jpaPostCommentRepository, times(1)).findById(anyLong());
+        verify(jpaPostCommentRepository, never()).save(any(PostComment.class));
+    }
+
 }
