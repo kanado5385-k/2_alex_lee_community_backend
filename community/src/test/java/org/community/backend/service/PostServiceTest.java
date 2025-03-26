@@ -7,6 +7,7 @@ import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.entity.PostImage;
 import org.community.backend.domain.entity.PostLike;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.dto.response.post.*;
@@ -593,6 +594,64 @@ public class PostServiceTest {
         verify(jpaPostCommentRepository, never()).findByPostIdOrderByCreatedAtDesc(anyLong());
         verify(jdbcMemberRepository, never()).findEmailById(anyLong());
     }
+
+    @Test
+    @DisplayName("댓글 삭제 성공 - 권한 있음")
+    void deleteComment_shouldReturnSuccess_whenUserHasPermission() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostComment comment = new PostComment(userId, post, commentContent);
+        PostCommentDeleteRequestDTO requestDTO = new PostCommentDeleteRequestDTO(userId);
+
+        when(jpaPostCommentRepository.getReferenceById(commentId)).thenReturn(comment);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.deleteComment(requestDTO, commentId);
+        PostCommentDeleteResponseDTO responseDTO = (PostCommentDeleteResponseDTO) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.SUCCESS, responseDTO.getCode());
+        verify(jpaPostCommentRepository, times(1)).getReferenceById(commentId);
+        verify(jpaPostCommentRepository, times(1)).delete(comment);
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 권한 없음")
+    void deleteComment_shouldReturnNotHavePermission_whenUserIsNotOwner() {
+        // given
+        Post post = new Post(userId, postTitle, postContent);
+        PostComment comment = new PostComment(userId, post, commentContent);
+        PostCommentDeleteRequestDTO requestDTO = new PostCommentDeleteRequestDTO(wrongUserId);
+
+        when(jpaPostCommentRepository.getReferenceById(commentId)).thenReturn(comment);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.deleteComment(requestDTO, commentId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.PERMITTED_ERROR, response.getCode());
+        verify(jpaPostCommentRepository, times(1)).getReferenceById(commentId);
+        verify(jpaPostCommentRepository, never()).delete(any(PostComment.class));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 서버 오류")
+    void deleteComment_shouldReturnServerError_whenExceptionOccurs() {
+        // given
+        PostCommentDeleteRequestDTO requestDTO = new PostCommentDeleteRequestDTO(userId);
+        doThrow(RuntimeException.class).when(jpaPostCommentRepository).getReferenceById(commentId);
+
+        // when
+        ResponseEntity<?> responseEntity = postService.deleteComment(requestDTO, commentId);
+        ApiResponse response = (ApiResponse) responseEntity.getBody();
+
+        // then
+        assertEquals(ResponseCode.INTERNAL_SERVER_ERROR, response.getCode());
+        verify(jpaPostCommentRepository, times(1)).getReferenceById(commentId);
+        verify(jpaPostCommentRepository, never()).delete(any(PostComment.class));
+    }
+
 
 
 
