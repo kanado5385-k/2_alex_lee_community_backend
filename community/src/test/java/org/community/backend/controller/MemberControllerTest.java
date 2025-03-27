@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
+import org.community.backend.dto.request.member.MemberPasswordChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.repository.JdbcMemberRepository;
@@ -162,6 +163,18 @@ class MemberControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("사용자 비밀번호 수정 성공")
+    void changeMemebrPasswordSuccess() throws Exception {
+        MemberPasswordChangeRequestDTO request = new MemberPasswordChangeRequestDTO(memberId, password);
+
+        mockMvc.perform(patch("/users/password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS))
+                .andExpect(status().isOk());
     }
 
 
