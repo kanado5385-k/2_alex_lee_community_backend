@@ -3,6 +3,7 @@ package org.community.backend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
+import org.community.backend.dto.request.member.MemberInfChangeRequestDTO;
 import org.community.backend.dto.request.member.SignInRequestDTO;
 import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.repository.JdbcMemberRepository;
@@ -20,6 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -121,6 +125,18 @@ class MemberControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ResponseCode.DUPLICATE_EMAIL));
+    }
+
+    @Test
+    @DisplayName("사용자 정보 반환 성공")
+    void getMemberSuccess() throws Exception {
+        Optional<Integer> optionalMemberId = jdbcMemberRepository.findIdByEmail(email);
+        int memberId = optionalMemberId.get();
+
+        mockMvc.perform(get("/users/{userId}", memberId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS))
+                .andExpect(jsonPath("$.nickname").value(nickname));
     }
 
 
