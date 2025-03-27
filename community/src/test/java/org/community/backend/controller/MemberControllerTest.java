@@ -1,5 +1,6 @@
 package org.community.backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
@@ -23,8 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -41,6 +41,7 @@ class MemberControllerTest {
     @Autowired
     private JdbcMemberRepository jdbcMemberRepository;
 
+    private int memberId;
     private final String email = "test@example.com";
     private final String newEmail = "newTest@example.com";
     private final String password = "123456";
@@ -50,6 +51,8 @@ class MemberControllerTest {
     @BeforeEach
     void setUp() {
         jdbcMemberRepository.save(new Member(email, password, nickname));
+        Optional<Integer> optionalMemberId = jdbcMemberRepository.findIdByEmail(email);
+        memberId = optionalMemberId.get();
     }
 
     @Test
@@ -130,13 +133,35 @@ class MemberControllerTest {
     @Test
     @DisplayName("사용자 정보 반환 성공")
     void getMemberSuccess() throws Exception {
-        Optional<Integer> optionalMemberId = jdbcMemberRepository.findIdByEmail(email);
-        int memberId = optionalMemberId.get();
 
         mockMvc.perform(get("/users/{userId}", memberId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS))
                 .andExpect(jsonPath("$.nickname").value(nickname));
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 성공 - 이미지 포함")
+    void changeMemberInfSuccess_whenImage() throws Exception {
+        changeMemberInfSuccess(memberId, nickname, profileImage);
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 성공 - 이미지 미포함")
+    void changeMemberInfSuccess_whenNoImage() throws Exception {
+        changeMemberInfSuccess(memberId, nickname, null);
+    }
+
+
+    private void changeMemberInfSuccess(int memberId, String nickname, String profileImage) throws Exception {
+
+        MemberInfChangeRequestDTO request = new MemberInfChangeRequestDTO(memberId, nickname, profileImage);
+
+        mockMvc.perform(patch("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
     }
 
 
