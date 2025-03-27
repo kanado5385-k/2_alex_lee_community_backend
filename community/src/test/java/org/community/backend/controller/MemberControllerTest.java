@@ -177,5 +177,11 @@ class MemberControllerTest {
                 .andExpect(status().isOk());
     }
 
-
+    @Test
+    @DisplayName("회원탈퇴 성공")
+    void deleteMemberSuccess() throws Exception {
+        mockMvc.perform(delete("/users/{userId}",  memberId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
 }
