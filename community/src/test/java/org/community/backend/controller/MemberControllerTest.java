@@ -4,11 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.member.SignInRequestDTO;
+import org.community.backend.dto.request.member.SignUpRequestDTO;
 import org.community.backend.repository.JdbcMemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,8 +38,10 @@ class MemberControllerTest {
     private JdbcMemberRepository jdbcMemberRepository;
 
     private final String email = "test@example.com";
+    private final String newEmail = "newTest@example.com";
     private final String password = "123456";
     private final String nickname = "tester";
+    private final String profileImage = "image.jpm";
 
     @BeforeEach
     void setUp() {
@@ -83,4 +88,40 @@ class MemberControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ResponseCode.SIGN_IN_FAIL));
     }
+
+    @Test
+    @DisplayName("회원가입 성공 - 이미지 포함")
+    void registerMemberSuccess_whenImage() throws Exception {
+        performSignUp_whenSuccess(newEmail, password, nickname, profileImage);
+    }
+
+    @Test
+    @DisplayName("회원가입 성공 - 이미지 미포함")
+    void registerMemberSuccess_whenNoImage() throws Exception {
+        performSignUp_whenSuccess(newEmail, password, nickname, null);
+    }
+
+    private void performSignUp_whenSuccess(String email, String password, String nickname, String profileImage) throws Exception {
+        SignUpRequestDTO request = new SignUpRequestDTO(email, password, nickname, profileImage);
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("회원가입 실패 - 중복이메일")
+    void registerMemberDuplicateEmail() throws Exception {
+        SignUpRequestDTO request =  new SignUpRequestDTO(email, password, nickname, profileImage);
+
+        mockMvc.perform(post("/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.DUPLICATE_EMAIL));
+    }
+
+
 }
