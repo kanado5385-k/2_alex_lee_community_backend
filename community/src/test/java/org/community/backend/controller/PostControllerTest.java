@@ -7,10 +7,7 @@ import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.entity.Post;
 import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.member.Member;
-import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
-import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
-import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
-import org.community.backend.dto.request.post.PostLikeRequestDTO;
+import org.community.backend.dto.request.post.*;
 import org.community.backend.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -346,4 +343,41 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.code").value(ResponseCode.INTERNAL_SERVER_ERROR));
     }
 
+    @Test
+    @DisplayName("게시글 삭제 성공 - 권한 있음")
+    void deletePostSuccess() throws Exception {
+        PostDeleteRequestDTO request = new PostDeleteRequestDTO((long) memberId);
+
+        mockMvc.perform(delete("/posts/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 권한 없음")
+    void deletePostFail_noPermission() throws Exception {
+        PostDeleteRequestDTO request = new PostDeleteRequestDTO(wrongMemberId);
+
+        mockMvc.perform(delete("/posts/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.PERMITTED_ERROR));
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 서버 오류 (존재하지 않는 게시글)")
+    void deletePostFail_postNotFoundOrException() throws Exception {
+        PostDeleteRequestDTO request = new PostDeleteRequestDTO((long) memberId);
+
+        jpaPostRepository.deleteById(postId);
+
+        mockMvc.perform(delete("/posts/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(ResponseCode.INTERNAL_SERVER_ERROR));
+    }
 }
