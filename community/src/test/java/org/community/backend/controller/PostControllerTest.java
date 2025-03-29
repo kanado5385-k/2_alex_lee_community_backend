@@ -20,8 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,6 +52,7 @@ public class PostControllerTest {
     private JpaPostLikeRepository jpaPostLikeRepository;
 
     private int memberId;
+    private final Long wrongMemberId = 11L;
     private final String email = "test@example.com";
     private final String password = "123456";
     private final String nickname = "tester";
@@ -140,4 +141,57 @@ public class PostControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
     }
+
+    @Test
+    @DisplayName("게시글 수정 성공 - 이미지 포함")
+    void updatePostSuccess_withImage() throws Exception {
+        updatePostSuccess((long)memberId, postTitle, postContent, postImageUrl);
+    }
+
+    @Test
+    @DisplayName("게시글 수정 성공 - 이미지 미포함")
+    void updatePostSuccess_withoutImage() throws Exception {
+        updatePostSuccess((long)memberId, postTitle, postContent, null);
+    }
+
+    private void updatePostSuccess(Long localMemberId, String localPostTitle, String localPostContent, String localPostImageUrl) throws Exception {
+        PostCreateUpdateRequestDTO request = new PostCreateUpdateRequestDTO(
+                localMemberId, localPostTitle, localPostContent, localPostImageUrl
+        );
+
+        mockMvc.perform(patch("/posts/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("게시글 수정 실패 - 존재하지 않는 게시글")
+    void updatePostFail_postNotFound() throws Exception {
+        PostCreateUpdateRequestDTO request = new PostCreateUpdateRequestDTO(
+                (long) memberId, "title", "content", null
+        );
+
+        mockMvc.perform(patch("/posts/{postId}", wrongPostId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
+    }
+
+    @Test
+    @DisplayName("게시글 수정 실패 - 권한 없음")
+    void updatePostFail_noPermission() throws Exception {
+        PostCreateUpdateRequestDTO request = new PostCreateUpdateRequestDTO(
+                wrongMemberId, postTitle, postContent, null
+        );
+
+        mockMvc.perform(patch("/posts/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.PERMITTED_ERROR));
+    }
+
 }
