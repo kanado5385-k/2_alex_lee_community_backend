@@ -270,5 +270,13 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
     }
 
+    @Test
+    @DisplayName("게시글 목록 조회 성공 - 게시글 존재")
+    void getAllPostsSuccess() throws Exception {
+        mockMvc.perform(get("/posts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS))
+                .andExpect(jsonPath("$.articleList").isArray());
+    }
 
 }
