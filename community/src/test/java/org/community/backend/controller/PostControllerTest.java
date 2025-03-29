@@ -97,4 +97,23 @@ public class PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
     }
+
+    @Test
+    @DisplayName("게시글 반환 성공")
+    void getPostSuccess() throws Exception {
+        mockMvc.perform(get("/posts/{postId}", postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS))
+                .andExpect(jsonPath("$.post_title").value(postTitle));
+    }
+
+    @Test
+    @DisplayName("게시글 반환 실패 - 없는 게시글")
+    void getPostNotFoundPost() throws Exception {
+        Long wrongPostId = 1L;
+
+        mockMvc.perform(get("/posts/{postId}", wrongPostId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
+    }
 }
