@@ -194,4 +194,49 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.code").value(ResponseCode.PERMITTED_ERROR));
     }
 
+    @Test
+    @DisplayName("댓글 수정 성공")
+    void updateCommentSuccess() throws Exception {
+        PostCommentCreateUpdateRequestDTO request = new PostCommentCreateUpdateRequestDTO(
+                (long) memberId, commentContent
+        );
+
+        mockMvc.perform(patch("/posts/comments/{commentId}", commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 존재하지 않는 댓글")
+    void updateCommentFail_commentNotFound() throws Exception {
+        Long wrongCommentId = 14L;
+
+        PostCommentCreateUpdateRequestDTO request = new PostCommentCreateUpdateRequestDTO(
+                (long) memberId, commentContent
+        );
+
+        mockMvc.perform(patch("/posts/comments/{commentId}", wrongCommentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_COMMENT));
+    }
+
+    @Test
+    @DisplayName("댓글 수정 실패 - 권한 없음")
+    void updateCommentFail_noPermission() throws Exception {
+        PostCommentCreateUpdateRequestDTO request = new PostCommentCreateUpdateRequestDTO(
+                wrongMemberId, commentContent
+        );
+
+        mockMvc.perform(patch("/posts/comments/{commentId}", commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.PERMITTED_ERROR));
+    }
+
+
 }
