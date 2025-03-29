@@ -279,4 +279,33 @@ public class PostControllerTest {
                 .andExpect(jsonPath("$.articleList").isArray());
     }
 
+    @Test
+    @DisplayName("댓글 목록 조회 성공 - 댓글 존재")
+    void getAllCommentsSuccess() throws Exception {
+        mockMvc.perform(get("/posts/{postId}/comments", postId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS))
+                .andExpect(jsonPath("$.commentList").isArray());
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 게시글 없음")
+    void getAllCommentsFail_postNotFound() throws Exception {
+
+        mockMvc.perform(get("/posts/{postId}/comments", wrongPostId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
+    }
+
+    @Test
+    @DisplayName("댓글 목록 조회 실패 - 댓글 없음")
+    void getAllCommentsFail_noComments() throws Exception {
+        // 해당 게시글의 댓글 모두 삭제
+        jpaPostCommentRepository.deleteAll();
+
+        mockMvc.perform(get("/posts/{postId}/comments", postId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NO_ANY_COMMENT));
+    }
+
 }
