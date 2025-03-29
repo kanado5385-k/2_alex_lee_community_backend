@@ -8,6 +8,7 @@ import org.community.backend.domain.entity.Post;
 import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostCommentDeleteRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.repository.*;
@@ -300,12 +301,49 @@ public class PostControllerTest {
     @Test
     @DisplayName("댓글 목록 조회 실패 - 댓글 없음")
     void getAllCommentsFail_noComments() throws Exception {
-        // 해당 게시글의 댓글 모두 삭제
         jpaPostCommentRepository.deleteAll();
 
         mockMvc.perform(get("/posts/{postId}/comments", postId))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ResponseCode.NO_ANY_COMMENT));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 성공 - 권한 있음")
+    void deleteCommentSuccess() throws Exception {
+        PostCommentDeleteRequestDTO request = new PostCommentDeleteRequestDTO((long) memberId);
+
+        mockMvc.perform(delete("/posts/comments/{commentId}", commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 권한 없음")
+    void deleteCommentFail_noPermission() throws Exception {
+        PostCommentDeleteRequestDTO request = new PostCommentDeleteRequestDTO(wrongMemberId);
+
+        mockMvc.perform(delete("/posts/comments/{commentId}", commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.PERMITTED_ERROR));
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 실패 - 서버 오류 (존재하지 않는 댓글)")
+    void deleteCommentFail_commentNotFoundOrException() throws Exception {
+        PostCommentDeleteRequestDTO request = new PostCommentDeleteRequestDTO((long) memberId);
+
+        jpaPostCommentRepository.deleteById(commentId);
+
+        mockMvc.perform(delete("/posts/comments/{commentId}", commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(ResponseCode.INTERNAL_SERVER_ERROR));
     }
 
 }
