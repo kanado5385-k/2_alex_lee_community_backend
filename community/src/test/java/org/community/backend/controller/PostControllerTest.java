@@ -9,6 +9,7 @@ import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.member.Member;
 import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
+import org.community.backend.dto.request.post.PostLikeRequestDTO;
 import org.community.backend.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -170,7 +171,7 @@ public class PostControllerTest {
     @DisplayName("게시글 수정 실패 - 존재하지 않는 게시글")
     void updatePostFail_postNotFound() throws Exception {
         PostCreateUpdateRequestDTO request = new PostCreateUpdateRequestDTO(
-                (long) memberId, "title", "content", null
+                (long) memberId, postTitle, postContent, null
         );
 
         mockMvc.perform(patch("/posts/{postId}", wrongPostId)
@@ -236,6 +237,37 @@ public class PostControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ResponseCode.PERMITTED_ERROR));
+    }
+
+    @Test
+    @DisplayName("좋아요 등록후 취소 성공")
+    void togglePostLikeSuccess_cancelLike() throws Exception {
+        // 먼저 좋아요를 등록
+        PostLikeRequestDTO request = new PostLikeRequestDTO((long) memberId);
+        mockMvc.perform(put("/posts/likes/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+
+        // 다시 요청하면 좋아요 취소
+        mockMvc.perform(put("/posts/likes/{postId}", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("좋아요 실패 - 게시글 없음")
+    void togglePostLikeFail_postNotFound() throws Exception {
+        PostLikeRequestDTO request = new PostLikeRequestDTO((long) memberId);
+
+        mockMvc.perform(put("/posts/likes/{postId}", wrongPostId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
     }
 
 
