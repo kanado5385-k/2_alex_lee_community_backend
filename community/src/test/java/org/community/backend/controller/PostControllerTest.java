@@ -7,6 +7,7 @@ import org.community.backend.common.response.ResponseCode;
 import org.community.backend.domain.entity.Post;
 import org.community.backend.domain.entity.PostComment;
 import org.community.backend.domain.member.Member;
+import org.community.backend.dto.request.post.PostCommentCreateUpdateRequestDTO;
 import org.community.backend.dto.request.post.PostCreateUpdateRequestDTO;
 import org.community.backend.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,7 @@ public class PostControllerTest {
     private final String nickname = "tester";
 
     private Long postId;
+    private final Long wrongPostId = 1L;
     private final String postTitle = "test post";
     private final String postContent = "test post content";
     private final String postImageUrl = "test post image url";
@@ -110,9 +112,31 @@ public class PostControllerTest {
     @Test
     @DisplayName("게시글 반환 실패 - 없는 게시글")
     void getPostNotFoundPost() throws Exception {
-        Long wrongPostId = 1L;
-
         mockMvc.perform(get("/posts/{postId}", wrongPostId))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 성공")
+    void createCommentSuccess() throws Exception {
+        PostCommentCreateUpdateRequestDTO request = new PostCommentCreateUpdateRequestDTO((long)memberId, commentContent);
+
+        mockMvc.perform(post("/posts/{postId}/comments", postId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ResponseCode.SUCCESS));
+    }
+
+    @Test
+    @DisplayName("댓글 작성 실패 - 없는 게시글")
+    void createCommentNotFoundPost() throws Exception {
+        PostCommentCreateUpdateRequestDTO request = new PostCommentCreateUpdateRequestDTO((long)memberId, commentContent);
+
+        mockMvc.perform(post("/posts/{postId}/comments", wrongPostId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ResponseCode.NOT_EXISTED_POST));
     }
